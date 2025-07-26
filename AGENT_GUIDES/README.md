@@ -1,44 +1,49 @@
-# Agent Guides Overview
+# VERN Agent Guides
 
-This folder contains guides for each major agent cluster and monitor in VERN. Each guide covers the agent’s role, protocols, gotchas, and best practices.
+This directory contains guides, prompts, and configuration for all VERN agents.
 
-**Core Design Pillars:**  
-- Interoperability: Agents and clusters must be able to connect with diverse devices, platforms, and AIs.
-- Continuous Adaptation: Agents should red-team, self-improve, and stay up to date with new threats and discoveries.
-- Intentionality: All actions should align with user goals, values, and ethical principles.
+---
 
-**Context, Logging, and Learning:**  
-- Each cluster/agent maintains its own log (actions, errors, feedback) and only accesses the data needed for its role.
-- Sensitive data is compartmentalized; agents escalate to the Knowledge Broker or Orchestrator for broader context.
-- Local learning happens per agent/cluster; system-wide learning and adaptation are managed by meta-agents and orchestrator.
-- All learning and adaptation steps are logged for transparency and debugging.
+## LLM Backend Modularity
 
-## Current Guides
+- Each agent can use a different LLM backend/model, configured in `config/agent_backends.yaml`.
+- Supported backends:
+  - `ollama-<model>` (e.g., `ollama-qwen3:0.6b`, `ollama-phi`)
+  - `fake_llm` (for testing)
+  - `qwen3-0.6b` (direct transformers integration)
+  - More can be added by writing a wrapper and updating `llm_router.py`.
 
-- ARCHETYPE_PHOENIX.md — Human reasoning, values, synthesis (13 archetypes)
-- INTERACTION_ENGINE.md — Adaptive, engaging, context-aware personality (Firebird layer)
-- DEV_TEAM.md — Coding, debugging, automation
-- ADMIN.md — Scheduling, file management, logistics
-- RESEARCH.md — Information retrieval, summarization
-- FINANCE_RESOURCE.md — Budgeting, resource allocation
-- HEALTH_WELLNESS.md — Habit tracking, health data, wellness
-- LEARNING_EDUCATION.md — Personalized learning, skill mapping
-- SOCIAL_RELATIONSHIP.md — Contacts, communication, social support
-- SECURITY_PRIVACY.md — Threat monitoring, permissions, privacy
-- ENVIRONMENT_SYSTEMS.md — Device/system health, automation, IoT
-- LEGAL_COMPLIANCE.md — Policy tracking, contracts, compliance
-- CREATIVITY_MEDIA.md — Idea generation, content creation, media
-- CAREER_WORK.md — Job search, networking, performance
-- TRAVEL_LOGISTICS.md — Trip planning, booking, navigation
+### How to Add or Change an Agent's LLM Backend
 
-## All Clusters & Monitors Documented
+1. Edit `config/agent_backends.yaml` and set the backend for your agent.
+2. If using a new backend, add a wrapper in `src/mvp/` and update `llm_router.py`.
+3. Test with the agent CLI or automated tests.
 
-All major agent clusters and system monitors are now documented.
+---
 
-**Doc Discipline & Cross-Referencing:**  
-- Every cluster guide (e.g., DEV_TEAM.md) is paired with a PROMPTS.md file (e.g., DEV_TEAM_PROMPTS.md).
-- Always read both the main guide and its PROMPTS.md before acting—never shortcut or skip linked files.
-- All guides and prompt specs link to [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md), [VALUES_AND_GUIDELINES.md](../VALUES_AND_GUIDELINES.md), and [SECURITY_AND_GIT_GUIDELINES.md](../SECURITY_AND_GIT_GUIDELINES.md).
-- See [CONTRIBUTING.md](../CONTRIBUTING.md) for doc discipline rules and enforcement.
+## Agent Guide Index
 
-Contributors: Update guides as protocols evolve or new clusters/monitors are added. Follow the template and reinforce project values and safety protocols.
+- [ADMIN.md](ADMIN.md)
+- [DEV_TEAM.md](DEV_TEAM.md)
+- [RESEARCH.md](RESEARCH.md)
+- [KNOWLEDGE_BROKER.md](KNOWLEDGE_BROKER.md)
+- [HEALTH_WELLNESS.md](HEALTH_WELLNESS.md)
+- [LEARNING_EDUCATION.md](LEARNING_EDUCATION.md)
+- [SOCIAL_RELATIONSHIP.md](SOCIAL_RELATIONSHIP.md)
+- [SECURITY_PRIVACY.md](SECURITY_PRIVACY.md)
+- [ENVIRONMENT_SYSTEMS.md](ENVIRONMENT_SYSTEMS.md)
+- [LEGAL_COMPLIANCE.md](LEGAL_COMPLIANCE.md)
+- [CREATIVITY_MEDIA.md](CREATIVITY_MEDIA.md)
+- [CAREER_WORK.md](CAREER_WORK.md)
+- [TRAVEL_LOGISTICS.md](TRAVEL_LOGISTICS.md)
+- [ORCHESTRATOR.md](ORCHESTRATOR.md)
+- [EMERGENT_AGENT.md](EMERGENT_AGENT.md)
+- [ID10T_MONITOR.md](ID10T_MONITOR.md)
+
+---
+
+## See Also
+
+- [QUICKSTART.md](../QUICKSTART.md) for setup and backend installation.
+- [MVP_IMPLEMENTATION_PLAN.md](../MVP_IMPLEMENTATION_PLAN.md) for architecture and extensibility.
+- [KNOWN_ISSUES_AND_GOTCHAS.md](../KNOWN_ISSUES_AND_GOTCHAS.md) for backend/model caveats.

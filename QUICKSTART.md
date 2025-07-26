@@ -6,7 +6,7 @@
 
 ## 1. Prerequisites
 
-- Python 3.8+ installed
+- Python 3.9+ installed
 - Git installed
 - Basic terminal/command line familiarity
 
@@ -26,18 +26,13 @@
    source venv/bin/activate
    ```
 
-3. **Install dependencies (to be added in requirements.txt):**
+3. **Install dependencies:**
    ```
+   pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
-4. **Copy and configure environment variables:**
-   ```
-   cp .env.example .env
-   # Edit .env to add your API keys and config
-   ```
-
-5. **Initialize the database:**
+4. **Initialize the database:**
    ```
    python3 src/db/init_db.py
    ```
@@ -46,7 +41,41 @@
 
 ---
 
-## 3. Running the MVP
+## 3. Local LLM Setup (Ollama)
+
+### A. Install Ollama
+
+1. **Install Ollama (Linux/macOS):**
+   ```
+   curl -fsSL https://ollama.com/install.sh | sh
+   ```
+   - See [Ollama docs](https://ollama.com/) for Windows or advanced options.
+
+2. **Start the Ollama service (if not already running):**
+   ```
+   ollama serve
+   ```
+
+### B. Download and Run a Model
+
+1. **Pull the Qwen3-0.6B model:**
+   ```
+   ollama pull qwen3:0.6b
+   ```
+2. **Test the model:**
+   ```
+   ollama run qwen3:0.6b
+   ```
+
+### C. Troubleshooting
+
+- If you run out of RAM, try a smaller model (e.g., `phi`, `tinyllama`).
+- If Ollama is not found, ensure it’s in your PATH and the service is running.
+- For more models, see [Ollama Library](https://ollama.com/library).
+
+---
+
+## 4. Running the MVP
 
 ### Manual Testing
 
@@ -58,13 +87,7 @@
    ```
    python3 cli.py
    ```
-   - Option 1: Request new feature (type a feature description and watch the workflow/logs)
-   - Option 2: Schedule meeting (type meeting details and watch the workflow/logs)
-   - Option 3: Knowledge Broker: Context lookup
-   - Option 4: Knowledge Broker: Cross-cluster query
-   - Option 5: Security/Privacy: Monitor action
-   - Option 6: Exit
-   - Try invalid options to check error handling.
+   - Try all options and see agent responses.
 
 ### Automated Testing
 
@@ -75,21 +98,31 @@
    python3 tests/test_agents_extended.py
    python3 tests/test_cross_cluster_handoff.py
    python3 tests/test_agents_horizontal.py
+   python3 tests/test_llm_integration.py
+   python3 tests/test_agent_context_workflow.py
+   python3 tests/test_llm_backend_swap.py
    ```
-   - Confirms feature request, meeting scheduling, error handling, escalation stubs, Knowledge Broker and Security/Privacy agent workflows, and cross-cluster handoff logging all work as intended.
-
-2. Review logs and outputs to confirm system behavior matches documentation.
+   - Confirms all agent, LLM, and workflow logic.
 
 ---
 
-## 4. Accessibility & Internationalization
+## 5. LLM Backend Modularity
+
+- LLM backend/model selection is controlled via `config/agent_backends.yaml`.
+- Supported backends: `ollama-<model>`, `fake_llm`, `qwen3-0.6b` (transformers), and more.
+- Add new backends by writing a wrapper and updating `llm_router.py`.
+- See AGENT_GUIDES/README.md for details.
+
+---
+
+## 6. Accessibility & Internationalization
 
 - VERN aims to support keyboard navigation, screen readers, and multiple languages.
 - See GOALS_AND_MILESTONES.md for progress and plans.
 
 ---
 
-## 5. Getting Help
+## 7. Getting Help
 
 - See COMMUNITY.md for support channels.
 - Read CONTRIBUTING.md and SECURITY_AND_GIT_GUIDELINES.md before making changes.

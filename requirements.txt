@@ -1,0 +1,26 @@
+# VERN AI Agent Platform - Core Requirements
+# Core dependencies for VERN AI Agent Platform
+# LLM and Model Inference
+transformers>=4.41.0
+torch>=2.2.0
+
+# For quantized/efficient inference (optional, for advanced users)
+# llama-cpp-python>=0.2.72
+
+# YAML config
+pyyaml>=6.0
+
+# SQLite (standard library, do not pip install)
+# sqlite3
+
+# For CLI and dev tools
+rich>=13.7.0
+
+# For web UI (optional, for future)
+# streamlit>=1.35.0
+
+# For agentic tools (optional, for future)
+# qwen-agent
+
+# For Jupyter/interactive (optional)
+# jupyterlab

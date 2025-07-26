@@ -1,81 +1,39 @@
 # Known Issues & Gotchas
 
-**Purpose:**  
-Track architectural risks, integration pitfalls, and recurring “gotchas” for VERN. Update this file as new issues are discovered or resolved.
+---
+
+## LLM Backend/Model Notes
+
+- **Ollama Model Names:**  
+  - Model names must match Ollama’s registry exactly (e.g., `qwen3:0.6b`, `phi`, `tinyllama`).
+  - If a model isn’t available, check [Ollama Library](https://ollama.com/library) for updates.
+- **Qwen3-0.6B in Ollama:**  
+  - Now available as `qwen3:0.6b`. Earlier attempts failed due to incorrect naming.
+- **RAM/Performance:**  
+  - If you run out of RAM, try a smaller model (e.g., `phi`, `tinyllama`).
+  - Ollama runs in CPU mode if no GPU is detected—expect slower inference.
+- **Hugging Face Transformers:**  
+  - Direct integration is possible for any model, but may be slow or crash on low-RAM systems.
+  - Use quantized GGUF models with llama.cpp for best performance on older hardware.
+- **Backend Modularity:**  
+  - All LLM plumbing is modular and config-driven via `llm_router.py` and `agent_backends.yaml`.
+  - Swapping models/providers is safe and easy.
 
 ---
 
-## Integration Complexity
+## Agent/Workflow Gotchas
 
-- **Description:** Modular agents require robust orchestration and message passing. Integration bugs or unclear protocols can cause agents to “talk past each other.”
-- **Example:** Dev Team and Admin both update a schedule, but changes are not synchronized.
-- **Mitigation:** Start with a minimal working system (MVP). Add complexity gradually. Test integration points early and often.
-- **Status:** MVP validated (manual and automated tests passed).
-
----
-
-## Context Loss & Escalation Loops
-
-- **Description:** Agents may escalate too often or not enough, leading to bottlenecks or missed context.
-- **Example:** Admin cluster escalates every permission check, overwhelming the Orchestrator.
-- **Mitigation:** Log and review all escalations. Tune escalation protocols based on real usage.
-- **Status:** MVP validated (manual and automated tests passed).
+- **Agent LLM Calls:**  
+  - All agent LLM calls must go through the router, never direct to a backend.
+- **Testing:**  
+  - Always test new backends with both CLI and automated tests.
+- **Documentation:**  
+  - Update QUICKSTART.md, AGENT_GUIDES/README.md, and MVP_IMPLEMENTATION_PLAN.md when adding or changing backends.
 
 ---
 
-## Doc/Code Drift
+## See Also
 
-- **Description:** Documentation and code can get out of sync, especially with many prompt/behavior specs.
-- **Example:** Prompt spec for Dev Team is updated, but main guide is not.
-- **Mitigation:** Require doc updates in every PR/code change. Enforce with CONTRIBUTING.md and PR templates.
-- **Status:** Protocol in place.
-
----
-
-## AI Shortcutting or Hallucination
-
-- **Description:** AI agents may ignore cross-links, invent context, or “cheat” on protocols.
-- **Example:** Agent answers a prompt without referencing the required guide.
-- **Mitigation:** Build in sanity checks (id10t Monitor, Knowledge Broker). Require explicit doc references in agent outputs.
-- **Status:** Protocol in place; validated in MVP.
-
----
-
-## Onboarding & Complexity
-
-- **Description:** The system is complex; new contributors may be overwhelmed.
-- **Example:** New dev skips onboarding docs and breaks escalation logic.
-- **Mitigation:** Keep QUICKSTART.md and onboarding docs simple and up to date. Add “Doc Discipline” reminders everywhere.
-- **Status:** Ongoing.
-
----
-
-## Performance & Scaling
-
-- **Description:** Many agents, logs, and escalations could slow down the system.
-- **Example:** Excessive logging or escalations cause delays in user response.
-- **Mitigation:** Profile early. Optimize only after a working baseline is established.
-- **Status:** To be monitored after MVP.
-
----
-
-## Lessons Learned from MVP
-
-- Manual and automated tests both passed, confirming workflows and error handling.
-- CLI experience matches documentation and user expectations.
-- Invalid input is handled gracefully.
-
-## Lessons Learned from DB Logging Integration
-
-- DB logging is robust and enables traceability for actions, notifications, and gotchas.
-- Automated and manual DB inspection confirmed correct data capture.
-- Relative imports in agent files must be robust to working directory.
-
-## Lessons Learned from Agent Expansion & Handoff Logging
-
-- Knowledge Broker and Security/Privacy agents are modular and testable.
-- Cross-cluster handoff logging enables traceability for complex workflows.
-- Automated tests for new agents and handoff chains passed.
-- Next: Use handoff and gotcha logs for analytics, dashboards, and cross-cluster learning.
-
-**Update this file after every major integration, bug, or lesson learned. Ruthlessly document all gotchas and solutions.**
+- [QUICKSTART.md](QUICKSTART.md)
+- [AGENT_GUIDES/README.md](AGENT_GUIDES/README.md)
+- [MVP_IMPLEMENTATION_PLAN.md](MVP_IMPLEMENTATION_PLAN.md)

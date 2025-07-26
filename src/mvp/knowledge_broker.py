@@ -11,29 +11,31 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
 from logger import log_action, log_message
 
+from llm_router import call_llm_for_agent
+
 class KnowledgeBroker:
     def __init__(self, agent_id=4):
         self.agent_id = agent_id  # Example: Knowledge Broker agent_id = 4
 
-    def context_lookup(self, query, user_id=None):
+    def context_lookup(self, query, user_id=None, context=None):
         """
-        Look up context or information for other agents/clusters.
+        Look up context or information for other agents/clusters using LLM (stubbed).
         """
         log_action(self.agent_id, user_id, "context_lookup", {"query": query}, status="success")
         print(f"[KnowledgeBroker] Looking up context for: {query}")
-        # TODO: Implement actual context lookup logic
-        result = f"Context for '{query}': [stubbed result]"
+        llm_result = call_llm_for_agent("knowledge_broker", f"Lookup context for: {query}", context)
+        result = f"Context for '{query}': {llm_result}"
         self.log(result)
         return result
 
-    def cross_cluster_query(self, request, user_id=None):
+    def cross_cluster_query(self, request, user_id=None, context=None):
         """
-        Handle cross-cluster queries or sanity checks.
+        Handle cross-cluster queries or sanity checks using LLM (stubbed).
         """
         log_action(self.agent_id, user_id, "cross_cluster_query", {"request": request}, status="success")
         print(f"[KnowledgeBroker] Handling cross-cluster query: {request}")
-        # TODO: Implement actual cross-cluster query logic
-        result = f"Cross-cluster result for '{request}': [stubbed result]"
+        llm_result = call_llm_for_agent("knowledge_broker", f"Cross-cluster query: {request}", context)
+        result = f"Cross-cluster result for '{request}': {llm_result}"
         self.log(result)
         return result
 

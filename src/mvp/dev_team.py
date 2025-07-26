@@ -11,17 +11,20 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
 from logger import log_action, log_message
 
+from llm_router import call_llm_for_agent
+
 class DevTeam:
     def __init__(self, agent_id=2):
         self.agent_id = agent_id  # Example: Dev Team agent_id = 2
 
-    def implement_feature(self, feature_request, user_id=None):
+    def implement_feature(self, feature_request, user_id=None, context=None):
         """
-        Implement a feature or code task.
+        Implement a feature or code task, using LLM for code generation (stubbed).
         """
         log_action(self.agent_id, user_id, "implement_feature", {"feature_request": feature_request}, status="success")
         print(f"[DevTeam] Implementing feature: {feature_request}")
-        result = f"Feature '{feature_request}' implemented."
+        llm_result = call_llm_for_agent("dev_team", f"Generate code for: {feature_request}", context)
+        result = f"Feature '{feature_request}' implemented. LLM says: {llm_result}"
         self.log(result)
         return result
 
