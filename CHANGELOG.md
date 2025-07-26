@@ -23,6 +23,44 @@
 
 ---
 
+### 2025-07-26 [Horizontal Agent Scaffolding Complete]
+
+**Added**
+- Horizontally scaffolded and tested all remaining agents/clusters:
+  - Research, Finance/Resource, Health/Wellness, Learning/Education, Social/Relationship, Environment/Systems, Legal/Compliance, Creativity/Media, Career/Work, Travel/Logistics, Archetype/Phoenix, Emergent Agent, id10t Monitor
+- Automated test for all horizontal agent stubs (tests/test_agents_horizontal.py)
+
+**Validated**
+- All horizontal agent stubs pass automated tests and log to DB
+
+**Changed**
+- Updated QUICKSTART.md and TASKS_AND_TODO.md for horizontal agent coverage
+
+**Lessons**
+- Breadth-first scaffolding enables rapid integration, parallel development, and early pattern discovery
+
+---
+
+### 2025-07-26 [Agent Expansion, Cross-Cluster Handoff, and Test Coverage]
+
+**Added**
+- Knowledge Broker agent/cluster (src/mvp/knowledge_broker.py)
+- Security/Privacy agent/cluster (src/mvp/security_privacy.py)
+- CLI integration for both new agents
+- Automated tests for Knowledge Broker and Security/Privacy (tests/test_agents_extended.py)
+- Cross-cluster handoff logging and test (tests/test_cross_cluster_handoff.py)
+
+**Validated**
+- All new agent and handoff tests pass
+
+**Changed**
+- Updated QUICKSTART.md and TASKS_AND_TODO.md for new agents and tests
+
+**Lessons**
+- Cross-cluster handoff logging enables traceability and debugging for complex workflows
+
+---
+
 ### 2025-07-25 [DB Logging Integration & Validation]
 
 **Added**

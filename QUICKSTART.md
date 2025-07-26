@@ -60,7 +60,10 @@
    ```
    - Option 1: Request new feature (type a feature description and watch the workflow/logs)
    - Option 2: Schedule meeting (type meeting details and watch the workflow/logs)
-   - Option 3: Exit
+   - Option 3: Knowledge Broker: Context lookup
+   - Option 4: Knowledge Broker: Cross-cluster query
+   - Option 5: Security/Privacy: Monitor action
+   - Option 6: Exit
    - Try invalid options to check error handling.
 
 ### Automated Testing
@@ -68,8 +71,12 @@
 1. From the project root, run:
    ```
    python3 tests/test_mvp.py
+   python3 tests/test_db_logging.py
+   python3 tests/test_agents_extended.py
+   python3 tests/test_cross_cluster_handoff.py
+   python3 tests/test_agents_horizontal.py
    ```
-   - Confirms feature request, meeting scheduling, error handling, and escalation stubs all work as intended.
+   - Confirms feature request, meeting scheduling, error handling, escalation stubs, Knowledge Broker and Security/Privacy agent workflows, and cross-cluster handoff logging all work as intended.
 
 2. Review logs and outputs to confirm system behavior matches documentation.
 

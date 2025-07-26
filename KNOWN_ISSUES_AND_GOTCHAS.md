@@ -70,6 +70,12 @@ Track architectural risks, integration pitfalls, and recurring “gotchas” for
 - DB logging is robust and enables traceability for actions, notifications, and gotchas.
 - Automated and manual DB inspection confirmed correct data capture.
 - Relative imports in agent files must be robust to working directory.
-- Next: Use DB logs for analytics, dashboards, and cross-cluster learning.
+
+## Lessons Learned from Agent Expansion & Handoff Logging
+
+- Knowledge Broker and Security/Privacy agents are modular and testable.
+- Cross-cluster handoff logging enables traceability for complex workflows.
+- Automated tests for new agents and handoff chains passed.
+- Next: Use handoff and gotcha logs for analytics, dashboards, and cross-cluster learning.
 
 **Update this file after every major integration, bug, or lesson learned. Ruthlessly document all gotchas and solutions.**
