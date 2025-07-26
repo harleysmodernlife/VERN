@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Editor/OS files
+.DS_Store
+*.swp
+*.swo
+*.bak
+*.tmp
+.idea/
+.vscode/
+
+# Environment variables
+.env
+
+# Databases and generated data
+db/vern.db
+chroma_data/
+db/*.db
+db/*.sqlite
+db/*.sqlite3
+
+# Logs
+*.log
+
+# Test outputs
+*.coverage
+htmlcov/
+.coverage.*
+
+# Misc
+*.egg-info/
+dist/
+build/
+.eggs/
+*.manifest
+*.spec
+*.lock
+*.pid
+*.seed
+*.orig
+*.rej
+*.sublime-workspace
+*.sublime-project
+*.iml
+*.db-journal
+*.sqlite-journal
+*.ipynb_checkpoints
+
+# Node/npm (if ever used)
+node_modules/
+npm-debug.log
+yarn-error.log
