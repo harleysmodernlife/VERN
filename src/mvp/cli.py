@@ -34,7 +34,8 @@ def main():
         print("3. Knowledge Broker: Context lookup")
         print("4. Knowledge Broker: Cross-cluster query")
         print("5. Security/Privacy: Monitor action")
-        print("6. Exit")
+        print("6. Call a tool (orchestrator)")
+        print("7. Exit")
         choice = input("Select an option: ").strip()
 
         if choice == "1":
@@ -62,6 +63,22 @@ def main():
             result = bus.send("security_check", action)
             security_privacy.log(result)
         elif choice == "6":
+            tool_name = input("Enter tool name: ").strip()
+            params_input = input("Enter params as key:value pairs (comma separated): ").strip()
+            params = {}
+            if params_input:
+                for pair in params_input.split(","):
+                    if ":" in pair:
+                        k, v = pair.split(":", 1)
+                        k = k.strip()
+                        v = v.strip()
+                        # Try to convert to int if possible
+                        if v.isdigit():
+                            v = int(v)
+                        params[k] = v
+            result = orchestrator.call_tool(tool_name, params)
+            print(f"Tool result: {result}")
+        elif choice == "7":
             print("Exiting MVP CLI.")
             break
         else:

@@ -26,6 +26,74 @@ VERN is more than software—it’s a movement for human-AI partnership, designe
 **Getting Started:**  
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) for setup, architecture, and contribution guidelines.
 
+---
+
+## MCP Server Integration
+
+VERN includes a minimal, modular [MCP (Model Context Protocol)](https://modelcontext.org/) server in `src/mvp/mcp_server.py` using the FastMCP API. This enables tool discovery and invocation via the MCP CLI and Inspector.
+
+### Features
+
+- **Tools:** Example tools:  
+  - `echo` (returns input string)  
+  - `add` (returns sum of two numbers)  
+  - `file_read`, `file_write`, `file_list`, `file_delete` (file operations)  
+  - `cluster_status` (shows all agent clusters)  
+  - `schedule_event` (schedule a meeting/event via Admin agent)  
+  - `journal_entry` (add a health/wellness journal entry, now persisted to DB)  
+  - `finance_balance` (check finance/resource balance)
+  - `get_user_profile` (fetch user profile from the database)
+- **Extensible:** Add new tools with a single function and decorator.
+- **MCP CLI Compatible:** Works with `mcp dev src/mvp/mcp_server.py` and the MCP Inspector.
+
+### Quickstart
+
+1. **Create and activate a Python virtual environment:**
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+2. **Install MCP CLI and dependencies:**
+   ```bash
+   pip install "mcp[cli]"
+   ```
+
+3. **Run the server with MCP CLI:**
+   ```bash
+   mcp dev src/mvp/mcp_server.py
+   ```
+
+4. **Open the MCP Inspector URL provided in the terminal to interactively test tools.**
+
+### How to Extend
+
+- Add a new `@mcp.tool()` function in `src/mvp/mcp_server.py`.
+- The function name becomes the tool name; arguments define the input schema.
+- The return value is sent as the tool's output.
+- See the code comments in `src/mvp/mcp_server.py` for more details.
+
+### Inspector & UI Integration
+
+- **MCP Inspector:**  
+  When you run `mcp dev src/mvp/mcp_server.py`, the terminal will display a link to the MCP Inspector (usually http://localhost:6274).  
+  Open this link in your browser to interactively test all registered tools, view schemas, and inspect tool results in real time.
+
+- **Cockpit/Dashboard UI (Prototype):**  
+  See [vern_dashboard.html](vern_dashboard.html) for a minimal web UI prototype.  
+  This dashboard lets you invoke MCP tools, enter parameters, and view results visually.  
+  (Future: Live connection to MCP server for real-time workflows.)
+
+- **UI/Extension Roadmap:**  
+  Plans include a minimal web UI and/or VSCode extension for invoking MCP tools directly from your development environment.  
+  Feedback and contributions are welcome—see TASKS_AND_TODO.md for progress.
+
+### Troubleshooting
+
+- Ensure your venv is activated before running `mcp`.
+- If you see "No server object found", confirm you are using `FastMCP` and a global `mcp` object.
+- For more, see [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk).
+
 **Future Vision:**  
 VERN aims to become a universal, adaptive tool for everyone and everything—see [FUTURE_VISION_AND_ROADMAP.md](FUTURE_VISION_AND_ROADMAP.md) for long-term goals and direction.
 

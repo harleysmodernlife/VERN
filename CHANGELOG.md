@@ -16,6 +16,24 @@
 
 ## Changelog
 
+### 2025-07-27 [Context Integration, Dashboard UI, and New MCP Tools]
+
+**Added**
+- MCP tools for agent/cluster actions: schedule_event (Admin), journal_entry (Health/Wellness, now persisted to DB), finance_balance (Finance/Resource), get_user_profile (fetch from DB)
+- Context/memory integration: journal_entry logs to DB, get_user_profile reads from DB
+- Minimal cockpit/dashboard UI prototype (vern_dashboard.html) for tool invocation and workflow management
+- Integration tests for all new MCP tools (tests/test_mcp_server.py)
+
+**Changed**
+- Updated README.md and AGENT_GUIDES/README.md for new tools and context features
+- Updated TASKS_AND_TODO.md for completed/ongoing and next sprint items
+
+**Lessons**
+- Exposing agent/cluster actions as MCP tools enables composability and UI integration
+- Context/memory integration is key for Life OS workflows and persistent user experience
+
+---
+
 ### 2025-07-25
 
 - Initial documentation suite created: README.md, CONTRIBUTING.md, PROJECT_OVERVIEW.md, GOALS_AND_MILESTONES.md, TASKS_AND_TODO.md, VALUES_AND_GUIDELINES.md, COMMUNITY.md, CHANGELOG.md  

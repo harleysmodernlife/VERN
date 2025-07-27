@@ -39,10 +39,19 @@ The Health/Wellness Cluster supports users in tracking habits, health data, exer
 
 ## Integration Points
 
-- Collaborate with Admin cluster for scheduling wellness activities.
-- Interface with Research cluster for evidence-based recommendations.
-- Coordinate with Social/Relationship cluster for support networks.
-- Escalate urgent health or safety concerns to the orchestrator.
+- Coordinate with Admin cluster for scheduling health-related events.
+- Interface with Learning/Education for health education and habit formation.
+- Collaborate with Social/Relationship for group wellness activities.
+- Escalate complex health/wellness issues to orchestrator or knowledge broker.
+
+---
+
+## MCP Tool: journal_entry
+
+- The Health/Wellness cluster exposes a `journal_entry` tool via the MCP server.
+- This tool allows users to log health/wellness journal entries from the CLI, Inspector, or dashboard UI.
+- All journal entries are persisted to the database for context-aware workflows and future analytics.
+- See [vern_dashboard.html](../vern_dashboard.html) for a prototype UI.
 
 ## Best Practices
 

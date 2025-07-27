@@ -68,4 +68,5 @@ hf_cache/
 *.ckpt
 *.safetensors
 
+external/mcp_servers
 

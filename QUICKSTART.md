@@ -69,9 +69,10 @@
 
 ### C. Troubleshooting
 
-- If you run out of RAM, try a smaller model (e.g., `phi`, `tinyllama`).
+- **RAM Requirements:** Qwen3-0.6B requires at least 4GB RAM (more recommended). If you run out of RAM, try a smaller model (e.g., `phi`, `tinyllama`).
 - If Ollama is not found, ensure it’s in your PATH and the service is running.
 - For more models, see [Ollama Library](https://ollama.com/library).
+- For best performance on low-resource hardware, use quantized GGUF models or run Ollama in CPU mode (expect slower inference).
 
 ---
 
@@ -96,8 +97,8 @@
    python3 tests/test_mvp.py
    python3 tests/test_db_logging.py
    python3 tests/test_agents_extended.py
-   python3 tests/test_cross_cluster_handoff.py
    python3 tests/test_agents_horizontal.py
+   python3 tests/test_cross_cluster_handoff.py
    python3 tests/test_llm_integration.py
    python3 tests/test_agent_context_workflow.py
    python3 tests/test_llm_backend_swap.py
@@ -105,6 +106,30 @@
    - Confirms all agent, LLM, and workflow logic.
 
 ---
+
+## MCP Server Integration (Tool API)
+
+VERN includes a modular MCP server for tool discovery and invocation via the MCP CLI and Inspector.
+
+- **Location:** `src/mvp/mcp_server.py`
+- **How to run:**  
+  1. Create and activate a venv:  
+     `python3 -m venv .venv && source .venv/bin/activate`
+  2. Install MCP CLI:  
+     `pip install "mcp[cli]"`
+  3. Start the server:  
+     `mcp dev src/mvp/mcp_server.py`
+- **How to extend:**  
+  Add a new `@mcp.tool()` function in `src/mvp/mcp_server.py`.  
+  See the README "MCP Server Integration" section for details.
+
+---
+
+## Cockpit/Dashboard UI (Prototype)
+
+- See `vern_dashboard.html` in the project root for a minimal web UI prototype.
+- This dashboard lets you invoke MCP tools, enter parameters, and view results visually.
+- (Future: Live connection to MCP server for real-time workflows.)
 
 ## 5. LLM Backend Modularity
 

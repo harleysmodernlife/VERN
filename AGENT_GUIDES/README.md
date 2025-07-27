@@ -21,6 +21,24 @@ This directory contains guides, prompts, and configuration for all VERN agents.
 
 ---
 
+## Agent Tool-Calling (NEW)
+
+- Agents and the orchestrator can call modular tools via a shared registry (`src/mvp/tool_interface.py`).
+- Tools are Python classes with a name, description, and a `call(params)` method.
+- Example tools: `echo`, `add` (see registry for details).
+- To call a tool manually, use the CLI option "Call a tool (orchestrator)" and provide the tool name and parameters.
+- To add a new tool: define a function, add it to the registry in `tool_interface.py`, and document its usage.
+
+### MCP Tools for Clusters (via MCP Server)
+
+- `schedule_event`: Schedule a meeting/event via the Admin agent.
+- `journal_entry`: Add a health/wellness journal entry via the HealthWellness agent (now persisted to DB).
+- `finance_balance`: Check finance/resource balance via the FinanceResource agent.
+- `get_user_profile`: Fetch a user profile from the database for context-aware actions.
+- See the main [README.md](../README.md) for full tool list and usage instructions.
+
+---
+
 ## Agent Guide Index
 
 - [ADMIN.md](ADMIN.md)

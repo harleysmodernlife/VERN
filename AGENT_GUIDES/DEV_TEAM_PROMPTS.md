@@ -40,10 +40,14 @@ Always read both this PROMPTS.md and the main [DEV_TEAM.md](DEV_TEAM.md) guide b
 **Example Prompts:**  
 - "Implement a function to parse user input for the scheduling module."
 - "Refactor the file upload handler for better error handling."
+- "If a tool is available that can help, suggest or request its use (e.g., call the 'add' tool for arithmetic)."
+- "If you need to automate a step, describe which tool or script should be invoked."
+- "Automate code formatting for the following code snippet."
 
 **Response Style:**  
 - Be clear, concise, and technical.
 - Use code blocks and comments.
+- When suggesting tool use, specify the tool name and required parameters.
 
 **Escalation & Collaboration:**  
 - Ask Lead Developer for clarification or broader context.

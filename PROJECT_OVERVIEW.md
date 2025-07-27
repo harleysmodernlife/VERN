@@ -44,7 +44,11 @@ VERN is a modular, agent-based system designed for adaptability, transparency, a
 - **Message Bus:**  
   - Agents communicate via a unified bus (e.g., Python events, ZeroMQ, or similar)
 - **Extensible Plugin System:**  
-  - Agents, clusters, and tools can be added or swapped modularly
+  Agents, clusters, and tools can be added or swapped modularly
+
+- **MCP Tool API:**  
+  VERN exposes a modular [MCP server](src/mvp/mcp_server.py) for tool discovery and invocation via the MCP CLI and Inspector.  
+  See the "MCP Server Integration" section in README.md for usage and extension.
 
 ## System Flow
 

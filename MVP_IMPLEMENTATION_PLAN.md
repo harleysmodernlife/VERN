@@ -40,6 +40,11 @@
 
 ---
 
+## MCP Server & Tool API
+
+- VERN includes a modular MCP server for tool discovery and invocation via the MCP CLI and Inspector.
+- See `src/mvp/mcp_server.py` and the "MCP Server Integration" section in README.md for usage and extension instructions.
+
 ## See Also
 
 - [QUICKSTART.md](QUICKSTART.md)

@@ -43,6 +43,15 @@ The Admin Cluster manages scheduling, calendar, reminders, file management, perm
 - Collaborate with Security/Privacy cluster for permission audits and compliance.
 - Escalate conflicts or complex scheduling/resource issues to the orchestrator.
 
+---
+
+## MCP Tool: schedule_event
+
+- The Admin cluster exposes a `schedule_event` tool via the MCP server.
+- This tool allows scheduling meetings/events from the CLI, Inspector, or dashboard UI.
+- All scheduled events are logged for transparency and can be integrated into cross-domain workflows.
+- See [vern_dashboard.html](../vern_dashboard.html) for a prototype UI.
+
 ## Best Practices
 
 - Maintain clear, up-to-date records of all admin actions.

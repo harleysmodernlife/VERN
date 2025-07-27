@@ -38,10 +38,19 @@ The Finance/Resource Cluster manages budgeting, expense tracking, resource alloc
 
 ## Integration Points
 
-- Collaborate with Admin cluster for resource allocation and scheduling.
-- Interface with Research cluster for data-driven financial analysis.
-- Coordinate with Dev Team for budgeting technical resources.
-- Escalate complex or sensitive financial issues to the orchestrator.
+- Coordinate with Admin cluster for resource allocation and budgeting.
+- Interface with Career/Work for income tracking and job-related finances.
+- Collaborate with Legal/Compliance for tax, policy, and compliance issues.
+- Escalate complex finance/resource issues to orchestrator or knowledge broker.
+
+---
+
+## MCP Tool: finance_balance
+
+- The Finance/Resource cluster exposes a `finance_balance` tool via the MCP server.
+- This tool allows users to check their finance/resource balance from the CLI, Inspector, or dashboard UI.
+- Can be integrated into cross-domain workflows for budgeting, planning, and reporting.
+- See [vern_dashboard.html](../vern_dashboard.html) for a prototype UI.
 
 ## Best Practices
 

@@ -10,8 +10,9 @@
 - **Qwen3-0.6B in Ollama:**  
   - Now available as `qwen3:0.6b`. Earlier attempts failed due to incorrect naming.
 - **RAM/Performance:**  
-  - If you run out of RAM, try a smaller model (e.g., `phi`, `tinyllama`).
+  - Qwen3-0.6B requires at least 4GB RAM (more recommended). If you run out of RAM, try a smaller model (e.g., `phi`, `tinyllama`).
   - Ollama runs in CPU mode if no GPU is detected—expect slower inference.
+  - For best results on low-resource hardware, use quantized GGUF models.
 - **Hugging Face Transformers:**  
   - Direct integration is possible for any model, but may be slow or crash on low-RAM systems.
   - Use quantized GGUF models with llama.cpp for best performance on older hardware.
