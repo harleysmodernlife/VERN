@@ -28,51 +28,40 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [PROJECT_OVERVIEW.md](PROJECT_OVERVIE
 
 ---
 
-## Life OS Roadmap & Vertical Slice MVP
+## Milestone: Multi-Agent Orchestration (2025-07)
 
-### **Current MVP Approach (2025-07)**
-- **The CLI is now LLM-powered by default (Qwen3 via Ollama), with tool overrides for explicit commands.**
-- **Agents and chat interface call Python functions for tools (echo, add, journal, etc.) when requested.**
-- **MCP is used for future extensibility, but not for core agent/tool calls.**
-- **Known Issue:** MCP proxy/server does not support direct tool invocation from Python/browser clients. See [KNOWN_ISSUES_AND_GOTCHAS.md](KNOWN_ISSUES_AND_GOTCHAS.md).
+### **Current MVP**
+- **Multi-agent orchestration:** The Orchestrator agent uses an LLM to decide which clusters to involve for any user input, delegates sub-tasks, and aggregates results.
+- **LLM-powered clusters:** Each cluster (Research, Finance, Health, Admin, etc.) has its own LLM-powered response logic and prompt.
+- **CLI chat:** User input is routed through the Orchestrator, which coordinates all agents and returns unified responses.
+- **Context awareness:** Recent conversation history is passed to agents for smarter, context-aware answers.
+- **Stable, extensible architecture:** All agent modules are modular and ready for plugins, tools, and future upgrades.
 
-### **Next Steps**
-- Extend LLM-powered agent logic to more clusters and workflows.
-- Implement agent-to-agent delegation and tool invocation from LLM plans.
-- Continue improving context management, error handling, and documentation.
-
----
-
-## Vertical Slice MVP: End-to-End Stack
-
-**Goal:**  
-A working “personal AI” (VERN) with persistent memory, tool invocation, and chat interface.
-
-**MVP Stack:**
-- Core agent (VERN) with chat UI (CLI or minimal web)
-- Persistent memory (SQLite/ChromaDB)
-- Tool API (Python functions) with a few working tools
-- LLM-powered Orchestrator agent (Qwen3 via Ollama)
-- End-to-end test: user chats, agent remembers, tools invoked, results returned
+#### **Sample CLI Session**
+```
+You: what's the weather like in tokyo?
+(orchestrator) (plan: Involve research and finance clusters to answer the question.)
+[Research]: The weather in Tokyo varies depending on time of year. In spring, it's often sunny, while in autumn, it can be cloudy. Humidity is high in Tokyo, so you might expect a warm and humid climate.
+[Finance]: I'm unable to provide specific weather information as the context doesn't include any weather-related details. If you have questions about budgeting, resource allocation, or other finance-related topics, feel free to ask!
+```
 
 ---
 
-## LLM-Powered Agents (Qwen3 Integration)
+## How It Works
 
-**How it works:**
-- Each agent (or cluster) can use Qwen3 (or another LLM) for reasoning, decision-making, and natural language understanding.
-- Agents are guided by role-specific prompts and context (recent messages, logs, data).
-- Example: The Orchestrator agent uses Qwen3 to decide which clusters should handle a user request and generates a plan of action.
-- LLM calls are made via `src/mvp/qwen3_llm.py`, which connects to Qwen3-0.6B running on Ollama.
+- **User input** → Orchestrator LLM → Plan & delegate to clusters → Each agent responds → Orchestrator aggregates → Unified answer to user.
+- **Agents** use their own LLM-powered logic, context, and prompts.
+- **No real-time tools yet:** Agents rely on LLM “knowledge” (not live APIs).
 
-**How to extend:**
-- Add LLM-powered response functions to any agent (see `src/mvp/orchestrator.py` for an example).
-- Update prompts and context to guide agent behavior.
-- See [AGENT_GUIDES/README.md](AGENT_GUIDES/README.md) for onboarding and extension instructions.
+---
 
-**Troubleshooting LLM/Agent Issues:**
-- If you see timeouts, backend errors, or slow responses, see [KNOWN_ISSUES_AND_GOTCHAS.md](KNOWN_ISSUES_AND_GOTCHAS.md) and [QUICKSTART.md](QUICKSTART.md) for tips.
-- You can switch to a smaller model in `src/mvp/qwen3_llm.py` if needed.
+## What’s Next
+
+- **Tool-calling:** Let agents call real tools (APIs, plugins, Python functions) for live data and actions.
+- **RAG (Retrieval-Augmented Generation):** Let agents pull from project docs, user data, or external knowledge bases.
+- **Agent specialization:** Improve prompts and context for each cluster.
+- **Web/voice UI:** Make VERN accessible beyond the CLI.
+- **Plugin API:** Allow third-party extensions and integrations.
 
 ---
 

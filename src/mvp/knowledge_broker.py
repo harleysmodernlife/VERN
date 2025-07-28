@@ -1,47 +1,23 @@
 """
-Knowledge Broker Agent MVP
-
-References:
-- AGENT_GUIDES/KNOWLEDGE_BROKER.md
-- AGENT_GUIDES/KNOWLEDGE_BROKER_PROMPTS.md
+VERN Knowledge Broker Agent (LLM-Powered)
+----------------------------------------
+Checks memory/logs for existing answers before user queries, and helps escalate context.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-from llm_router import call_llm_for_agent
-
-class KnowledgeBroker:
-    def __init__(self, agent_id=4):
-        self.agent_id = agent_id  # Example: Knowledge Broker agent_id = 4
-
-    def context_lookup(self, query, user_id=None, context=None):
-        """
-        Look up context or information for other agents/clusters using LLM (stubbed).
-        """
-        log_action(self.agent_id, user_id, "context_lookup", {"query": query}, status="success")
-        print(f"[KnowledgeBroker] Looking up context for: {query}")
-        llm_result = call_llm_for_agent("knowledge_broker", f"Lookup context for: {query}", context)
-        result = f"Context for '{query}': {llm_result}"
-        self.log(result)
-        return result
-
-    def cross_cluster_query(self, request, user_id=None, context=None):
-        """
-        Handle cross-cluster queries or sanity checks using LLM (stubbed).
-        """
-        log_action(self.agent_id, user_id, "cross_cluster_query", {"request": request}, status="success")
-        print(f"[KnowledgeBroker] Handling cross-cluster query: {request}")
-        llm_result = call_llm_for_agent("knowledge_broker", f"Cross-cluster query: {request}", context)
-        result = f"Cross-cluster result for '{request}': {llm_result}"
-        self.log(result)
-        return result
-
-    def log(self, message):
-        """
-        Log Knowledge Broker actions.
-        """
-        log_message(self.agent_id, message, level="info")
-        print(f"[KnowledgeBroker] {message}")
+def knowledge_broker_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to check memory/logs for existing answers, escalate context, and suggest next steps.
+    """
+    prompt = (
+        "You are the Knowledge Broker Agent in the VERN system. "
+        "Your job is to check memory and logs for existing answers before user queries, and help escalate context to the right agent or cluster. "
+        "Use your knowledge and the provided context to suggest answers, escalate as needed, or recommend next steps. "
+        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "Knowledge Broker Agent:"
+    )
+    return call_qwen3(prompt)

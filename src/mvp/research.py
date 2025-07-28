@@ -1,33 +1,23 @@
 """
-Research Agent MVP
-
-References:
-- AGENT_GUIDES/RESEARCH.md
-- AGENT_GUIDES/RESEARCH_PROMPTS.md
+VERN Research Agent (LLM-Powered)
+---------------------------------
+Handles information retrieval, summarization, and research tasks using Qwen3.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-from llm_router import call_llm_for_agent
-
-class Research:
-    def __init__(self, agent_id=6):
-        self.agent_id = agent_id
-
-    def handle_request(self, topic, user_id=None, context=None):
-        """
-        Handle a research request using LLM (stubbed).
-        """
-        log_action(self.agent_id, user_id, "research_request", {"topic": topic}, status="success")
-        print(f"[Research] Handling research request: {topic}")
-        llm_result = call_llm_for_agent("research", f"Research topic: {topic}", context)
-        result = f"Research result for '{topic}': {llm_result}"
-        self.log(result)
-        return result
-
-    def log(self, message):
-        log_message(self.agent_id, message, level="info")
-        print(f"[Research] {message}")
+def research_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to answer research/information requests, summarize, or suggest sources.
+    """
+    prompt = (
+        "You are the Research Agent in the VERN system. "
+        "Your job is to answer research questions, retrieve information, and summarize findings for the user. "
+        "Use your knowledge and the provided context to give clear, concise, and actionable answers. "
+        "If you cannot answer directly, suggest where to look or which agent to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "Research Agent:"
+    )
+    return call_qwen3(prompt)

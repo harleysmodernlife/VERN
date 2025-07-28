@@ -1,30 +1,23 @@
 """
-Learning/Education Agent MVP
-
-References:
-- AGENT_GUIDES/LEARNING_EDUCATION.md
-- AGENT_GUIDES/LEARNING_EDUCATION_PROMPTS.md
+VERN Learning/Education Agent (LLM-Powered)
+-------------------------------------------
+Handles personalized learning, skill mapping, and education questions using Qwen3.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-class LearningEducation:
-    def __init__(self, agent_id=9):
-        self.agent_id = agent_id
-
-    def handle_request(self, request, user_id=None):
-        """
-        Handle a learning/education request.
-        """
-        log_action(self.agent_id, user_id, "learning_education_request", {"request": request}, status="success")
-        print(f"[LearningEducation] Handling learning/education request: {request}")
-        result = f"Learning/Education result for '{request}': [stubbed result]"
-        self.log(result)
-        return result
-
-    def log(self, message):
-        log_message(self.agent_id, message, level="info")
-        print(f"[LearningEducation] {message}")
+def learning_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to answer learning/education questions, suggest resources, and map skills.
+    """
+    prompt = (
+        "You are the Learning/Education Agent in the VERN system. "
+        "Your job is to help the user learn new skills, map their learning journey, and answer education-related questions. "
+        "Use your knowledge and the provided context to give clear, supportive, and actionable advice. "
+        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "Learning Agent:"
+    )
+    return call_qwen3(prompt)

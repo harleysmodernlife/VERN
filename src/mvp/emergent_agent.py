@@ -1,30 +1,23 @@
 """
-Emergent Agent MVP
-
-References:
-- AGENT_GUIDES/EMERGENT_AGENT.md
-- AGENT_GUIDES/EMERGENT_AGENT_PROMPTS.md
+VERN Emergent Agent (LLM-Powered)
+---------------------------------
+Scans for cross-cluster optimizations, creative solutions, and system-wide insights using Qwen3.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-class EmergentAgent:
-    def __init__(self, agent_id=17):
-        self.agent_id = agent_id
-
-    def handle_request(self, request, user_id=None):
-        """
-        Handle an emergent agent request.
-        """
-        log_action(self.agent_id, user_id, "emergent_agent_request", {"request": request}, status="success")
-        print(f"[EmergentAgent] Handling emergent agent request: {request}")
-        result = f"Emergent Agent result for '{request}': [stubbed result]"
-        self.log(result)
-        return result
-
-    def log(self, message):
-        log_message(self.agent_id, message, level="info")
-        print(f"[EmergentAgent] {message}")
+def emergent_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to find cross-cluster optimizations, creative solutions, and system-wide insights.
+    """
+    prompt = (
+        "You are the Emergent Agent in the VERN system. "
+        "Your job is to scan for cross-cluster optimizations, creative solutions, and system-wide insights. "
+        "Use your knowledge and the provided context to suggest improvements, synergies, or new approaches. "
+        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "Emergent Agent:"
+    )
+    return call_qwen3(prompt)

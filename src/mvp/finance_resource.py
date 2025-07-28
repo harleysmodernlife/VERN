@@ -1,30 +1,23 @@
 """
-Finance/Resource Agent MVP
-
-References:
-- AGENT_GUIDES/FINANCE_RESOURCE.md
-- AGENT_GUIDES/FINANCE_RESOURCE_PROMPTS.md
+VERN Finance/Resource Agent (LLM-Powered)
+-----------------------------------------
+Handles budgeting, resource allocation, and finance questions using Qwen3.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-class FinanceResource:
-    def __init__(self, agent_id=7):
-        self.agent_id = agent_id
-
-    def handle_request(self, request, user_id=None):
-        """
-        Handle a finance/resource request.
-        """
-        log_action(self.agent_id, user_id, "finance_resource_request", {"request": request}, status="success")
-        print(f"[FinanceResource] Handling finance/resource request: {request}")
-        result = f"Finance/Resource result for '{request}': [stubbed result]"
-        self.log(result)
-        return result
-
-    def log(self, message):
-        log_message(self.agent_id, message, level="info")
-        print(f"[FinanceResource] {message}")
+def finance_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to answer finance/resource questions, budgeting, and resource allocation.
+    """
+    prompt = (
+        "You are the Finance/Resource Agent in the VERN system. "
+        "Your job is to answer finance and resource questions, help with budgeting, and manage resource allocation for the user. "
+        "Use your knowledge and the provided context to give clear, actionable, and responsible advice. "
+        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "Finance Agent:"
+    )
+    return call_qwen3(prompt)

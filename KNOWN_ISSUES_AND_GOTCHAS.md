@@ -2,42 +2,45 @@
 
 ---
 
-## LLM/Agent Limitations (2025-07)
+## Multi-Agent Orchestration (2025-07)
 
-- **LLM backend (Ollama/Qwen3) may be slow or error-prone on low-resource hardware.**
-  - Timeouts, backend errors, or slow responses may occur.
-  - If you see errors, try restarting Ollama, switching to a smaller model, or increasing the timeout in `src/mvp/qwen3_llm.py`.
-  - See [QUICKSTART.md](QUICKSTART.md) for troubleshooting tips.
+- **LLM-only knowledge:**  
+  - Agents cannot fetch real-time data or use external tools yet. All answers are based on the LLM’s internal knowledge and context.
+  - Example: Weather, news, or live data queries will return general info, not current facts.
 
-- **MCP proxy/server does not support direct tool invocation from Python/browser clients.**
-  - Tool calls from CLI chat, Python scripts, or browser-based UIs (dashboard, Inspector) are not supported.
+- **Agent confusion/overlap:**  
+  - Orchestrator may delegate to clusters that aren’t relevant, or multiple agents may answer the same question.
+  - Example: Finance agent may try to answer a weather question.
+  - This is a known limitation of LLM-based planning and prompt engineering.
+
+- **Ollama/model troubleshooting:**  
+  - If you see “500 Server Error” or “address already in use,” Ollama may be stuck or out of resources.
+  - Use `ps aux | grep ollama` and `sudo kill <PID>` to stop stuck processes.
+  - Restart Ollama with `ollama serve`.
+  - Try a smaller model if you run out of RAM.
+
+- **Module import errors:**  
+  - If you see `ModuleNotFoundError: No module named 'src'`, run the CLI as a module:  
+    ```
+    python3 -m src.mvp.cli
+    ```
+
+- **MCP proxy/server limitations:**  
+  - Tool invocation from Python/browser clients is not supported by MCP proxy/server as of July 2025.
   - For MVP, tools are called directly in Python.
-  - MCP is used for future extensibility, tool discovery, and integration only.
 
-- **Browser-based UIs (Inspector, dashboard) may fail to connect to MCP proxy due to missing CORS headers.**
-  - Tool invocation and config fetches may not work until MCP proxy adds CORS support.
-
-- **Inspector UI may show no tools or fail to connect if MCP server is not running in compatible mode.**
-  - Always use `mcp dev src/mvp/mcp_server.py` for Inspector compatibility.
-
----
-
-## Current MVP Approach
-
-- **CLI chat is LLM-powered by default (Qwen3 via Ollama), with tool overrides for explicit commands.**
-- **Agents and chat interface call Python functions for tools (echo, add, journal, etc.).**
-- **Persistent memory and logging are handled via SQLite.**
-- **MCP integration is planned for future releases when ecosystem matures.**
+- **Performance:**  
+  - LLM backend (Ollama/Qwen3) may be slow or error-prone on low-resource hardware.
+  - Close other heavy programs and monitor RAM/CPU usage.
 
 ---
 
 ## Future Plans
 
-- Monitor MCP SDK and CLI for updates enabling direct tool invocation from Python/browser clients.
-- Refactor agent/tool code for MCP integration when supported.
-- Add web/chat UI for user experience upgrade when CORS and API support are available.
-- Extend LLM-powered agent logic to more clusters and workflows.
-- Implement agent-to-agent delegation and tool invocation from LLM plans.
+- Add tool-calling (APIs, plugins, Python functions) for real-time data and actions.
+- Add RAG (retrieval-augmented generation) so agents can pull from project docs, user data, or external knowledge bases.
+- Improve agent specialization and orchestration logic.
+- Add web/voice UI and plugin API for extensibility.
 
 ---
 

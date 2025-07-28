@@ -1,30 +1,23 @@
 """
-id10t Monitor Agent MVP
-
-References:
-- AGENT_GUIDES/ID10T_MONITOR.md
-- AGENT_GUIDES/ID10T_MONITOR_PROMPTS.md
+VERN id10t Monitor Agent (LLM-Powered)
+--------------------------------------
+Sanity-checks actions for policy, stack, and convention adherence using Qwen3.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-class Id10tMonitor:
-    def __init__(self, agent_id=18):
-        self.agent_id = agent_id
-
-    def sanity_check(self, request, user_id=None):
-        """
-        Perform a sanity check or monitor for errors.
-        """
-        log_action(self.agent_id, user_id, "id10t_sanity_check", {"request": request}, status="success")
-        print(f"[Id10tMonitor] Performing sanity check: {request}")
-        result = f"id10t Monitor sanity check for '{request}': [stubbed result]"
-        self.log(result)
-        return result
-
-    def log(self, message):
-        log_message(self.agent_id, message, level="info")
-        print(f"[Id10tMonitor] {message}")
+def id10t_monitor_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to sanity-check actions for policy, stack, and convention adherence.
+    """
+    prompt = (
+        "You are the id10t Monitor Agent in the VERN system. "
+        "Your job is to sanity-check actions, plans, and outputs for policy, stack, and convention adherence. "
+        "Use your knowledge and the provided context to flag potential issues, suggest corrections, or escalate as needed. "
+        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "id10t Monitor Agent:"
+    )
+    return call_qwen3(prompt)

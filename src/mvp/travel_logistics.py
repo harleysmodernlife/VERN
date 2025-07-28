@@ -1,30 +1,23 @@
 """
-Travel/Logistics Agent MVP
-
-References:
-- AGENT_GUIDES/TRAVEL_LOGISTICS.md
-- AGENT_GUIDES/TRAVEL_LOGISTICS_PROMPTS.md
+VERN Travel/Logistics Agent (LLM-Powered)
+-----------------------------------------
+Handles trip planning, navigation, and logistics questions using Qwen3.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-class TravelLogistics:
-    def __init__(self, agent_id=15):
-        self.agent_id = agent_id
-
-    def handle_request(self, request, user_id=None):
-        """
-        Handle a travel/logistics request.
-        """
-        log_action(self.agent_id, user_id, "travel_logistics_request", {"request": request}, status="success")
-        print(f"[TravelLogistics] Handling travel/logistics request: {request}")
-        result = f"Travel/Logistics result for '{request}': [stubbed result]"
-        self.log(result)
-        return result
-
-    def log(self, message):
-        log_message(self.agent_id, message, level="info")
-        print(f"[TravelLogistics] {message}")
+def travel_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to answer travel/logistics questions, plan trips, and help with navigation.
+    """
+    prompt = (
+        "You are the Travel/Logistics Agent in the VERN system. "
+        "Your job is to help the user plan trips, navigate, and answer logistics-related questions. "
+        "Use your knowledge and the provided context to give practical, actionable, and safe advice. "
+        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "Travel Agent:"
+    )
+    return call_qwen3(prompt)

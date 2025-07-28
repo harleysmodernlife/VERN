@@ -38,6 +38,15 @@ If you are a new agent (AI or human) or need to re-orient:
 
 ---
 
+## Multi-Agent Orchestration & Delegation
+
+- The Orchestrator agent uses the LLM to decide which clusters to involve for any user input.
+- Sub-tasks are delegated to relevant clusters, which each use their own LLM-powered logic and tools.
+- Results are aggregated and summarized for the user.
+- All agent modules are modular and extensible for future plugins and new clusters.
+
+---
+
 ## Best Practices
 
 - Keep guides and prompts up to date with code and workflow changes.

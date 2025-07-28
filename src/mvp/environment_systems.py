@@ -1,30 +1,23 @@
 """
-Environment/Systems Agent MVP
-
-References:
-- AGENT_GUIDES/ENVIRONMENT_SYSTEMS.md
-- AGENT_GUIDES/ENVIRONMENT_SYSTEMS_PROMPTS.md
+VERN Environment/Systems Agent (LLM-Powered)
+--------------------------------------------
+Handles device/system health, automation, and environment questions using Qwen3.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-class EnvironmentSystems:
-    def __init__(self, agent_id=11):
-        self.agent_id = agent_id
-
-    def handle_request(self, request, user_id=None):
-        """
-        Handle an environment/systems request.
-        """
-        log_action(self.agent_id, user_id, "environment_systems_request", {"request": request}, status="success")
-        print(f"[EnvironmentSystems] Handling environment/systems request: {request}")
-        result = f"Environment/Systems result for '{request}': [stubbed result]"
-        self.log(result)
-        return result
-
-    def log(self, message):
-        log_message(self.agent_id, message, level="info")
-        print(f"[EnvironmentSystems] {message}")
+def environment_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to answer environment/systems questions, monitor device health, and suggest automations.
+    """
+    prompt = (
+        "You are the Environment/Systems Agent in the VERN system. "
+        "Your job is to monitor device and system health, suggest automations, and answer environment-related questions. "
+        "Use your knowledge and the provided context to give practical, actionable, and safe advice. "
+        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "Environment Agent:"
+    )
+    return call_qwen3(prompt)

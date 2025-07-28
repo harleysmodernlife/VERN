@@ -1,40 +1,23 @@
 """
-Admin Cluster MVP
-
-References:
-- AGENT_GUIDES/ADMIN.md
-- AGENT_GUIDES/ADMIN_PROMPTS.md
+VERN Admin Agent (LLM-Powered)
+------------------------------
+Handles scheduling, file management, and logistics using Qwen3.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-class Admin:
-    def __init__(self, agent_id=3):
-        self.agent_id = agent_id  # Example: Admin agent_id = 3
-
-    def schedule_meeting(self, details, user_id=None):
-        """
-        Schedule a meeting or event.
-        """
-        log_action(self.agent_id, user_id, "schedule_meeting", {"details": details}, status="success")
-        print(f"[Admin] Scheduling meeting: {details}")
-        result = f"Meeting scheduled: {details}"
-        self.log_action(result)
-        return result
-
-    def log_action(self, action):
-        """
-        Log admin actions.
-        """
-        log_message(self.agent_id, action, level="info")
-        print(f"[Admin] {action}")
-
-    def notify_user(self, message):
-        """
-        Notify the user of results or updates.
-        """
-        log_message(self.agent_id, f"Notifying user: {message}", level="info")
-        print(f"[Admin] Notifying user: {message}")
+def admin_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to answer admin/logistics questions, schedule events, and manage files.
+    """
+    prompt = (
+        "You are the Admin Agent in the VERN system. "
+        "Your job is to help with scheduling, file management, and logistics for the user. "
+        "Use your knowledge and the provided context to give clear, organized, and actionable advice. "
+        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "Admin Agent:"
+    )
+    return call_qwen3(prompt)

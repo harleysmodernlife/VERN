@@ -1,30 +1,23 @@
 """
-Health/Wellness Agent MVP
-
-References:
-- AGENT_GUIDES/HEALTH_WELLNESS.md
-- AGENT_GUIDES/HEALTH_WELLNESS_PROMPTS.md
+VERN Health/Wellness Agent (LLM-Powered)
+----------------------------------------
+Handles health, wellness, and habit tracking questions using Qwen3.
 """
 
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'db')))
-from logger import log_action, log_message
+from src.mvp.qwen3_llm import call_qwen3
 
-class HealthWellness:
-    def __init__(self, agent_id=8):
-        self.agent_id = agent_id
-
-    def handle_request(self, request, user_id=None):
-        """
-        Handle a health/wellness request.
-        """
-        log_action(self.agent_id, user_id, "health_wellness_request", {"request": request}, status="success")
-        print(f"[HealthWellness] Handling health/wellness request: {request}")
-        result = f"Health/Wellness result for '{request}': [stubbed result]"
-        self.log(result)
-        return result
-
-    def log(self, message):
-        log_message(self.agent_id, message, level="info")
-        print(f"[HealthWellness] {message}")
+def health_respond(user_input, context, agent_status=None):
+    """
+    Use Qwen3 to answer health/wellness questions, suggest habits, and track wellness.
+    """
+    prompt = (
+        "You are the Health/Wellness Agent in the VERN system. "
+        "Your job is to answer health and wellness questions, suggest habits, and help the user track their well-being. "
+        "Use your knowledge and the provided context to give safe, actionable, and supportive advice. "
+        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
+        f"Context: {context}\n"
+        f"Agent Status: {agent_status}\n"
+        f"User: {user_input}\n"
+        "Health Agent:"
+    )
+    return call_qwen3(prompt)

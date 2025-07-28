@@ -5,26 +5,24 @@
 # Context Checkpoint (2025-07-28)
 
 **Current Sprint:**  
-- LLM-powered CLI chat is now default (Qwen3 via Ollama).
-- Test LLM-powered Orchestrator in CLI and document results.
-- Update docs and guides for LLM-powered agents, context management, and troubleshooting.
-- Plan next blocks: agent-to-agent delegation, tool invocation from LLM plans, and improved error handling.
+- Multi-agent orchestration and delegation is now complete and stable.
+- CLI chat routes user input through the Orchestrator, which delegates to all LLM-powered clusters and aggregates results.
+- Update docs and guides for multi-agent orchestration, context management, and troubleshooting.
+- Plan next blocks: tool-calling, RAG (retrieval-augmented generation), agent specialization, and plugin API.
 
 **Blockers:**  
+- No real-time tool-calling or RAG yet (LLM-only knowledge).
 - MCP proxy/server does not support direct tool invocation from Python/browser clients.
-- Browser-based UIs (Inspector, dashboard) may fail to connect to MCP proxy due to missing CORS headers.
 - LLM backend (Ollama/Qwen3) may be slow or error-prone on low-resource hardware.
 
 **Next Steps:**  
-- [x] Refactor tool definitions to Python functions (src/mvp/tool_interface.py).
-- [x] Update agent/chat code (src/mvp/cli.py) to call tool functions directly.
-- [x] Test agent+tools end-to-end in CLI chat.
-- [x] Add Qwen3 LLM integration module (src/mvp/qwen3_llm.py).
-- [x] Add LLM-powered Orchestrator agent (src/mvp/orchestrator.py).
-- [x] Update README.md, AGENT_GUIDES/README.md, and QUICKSTART.md for LLM-powered agents.
-- [x] Add to KNOWN_ISSUES_AND_GOTCHAS.md: MCP limitations, CORS issues, LLM troubleshooting, and future plans.
-- [x] Plan for future MCP integration when ecosystem matures.
-- [ ] Plan and document next sprint: agent-to-agent delegation, tool invocation from LLM plans, error handling, and polish.
+- [x] Implement LLM-powered response functions for all clusters.
+- [x] Update Orchestrator to parse plans and delegate to clusters.
+- [x] Integrate CLI with orchestrator_respond for multi-agent workflows.
+- [x] Update README.md, AGENT_GUIDES/README.md, and QUICKSTART.md for multi-agent orchestration.
+- [x] Add to KNOWN_ISSUES_AND_GOTCHAS.md: LLM-only knowledge, agent confusion, Ollama troubleshooting.
+- [x] Plan for future tool-calling, RAG, and plugin API.
+- [ ] Plan and document next sprint: tool-calling, RAG, agent specialization, plugin API, and polish.
 - [ ] Update CHANGELOG.md for all recent changes.
 
 ---
@@ -38,16 +36,16 @@
 
 - **Local Commits:**  
   - Commit after each working feature, test, or doc update.
-  - Use clear, descriptive commit messages (e.g., "feat: add LLM-powered Orchestrator agent").
+  - Use clear, descriptive commit messages (e.g., "feat: multi-agent orchestration and CLI integration").
   - Do NOT push to remote until milestone is reached and all tests pass.
 
 - **Push to Remote:**  
-  - Only push after a sprint milestone (e.g., agent+tools working, all tests green).
+  - Only push after a sprint milestone (e.g., multi-agent orchestration working, all tests green).
   - Before push:  
     - Run all tests (manual and automated).
     - Update docs and context summary.
     - Human review/approval if possible.
-    - Tag the commit with the sprint/milestone (e.g., "sprint-2-llm-orchestrator").
+    - Tag the commit with the sprint/milestone (e.g., "sprint-3-multi-agent-orchestration").
 
 - **Branching:**  
   - Use feature branches for major new features or risky changes.
@@ -70,10 +68,10 @@
 
 # Known Issues & Gotchas
 
+- No real-time tool-calling or RAG yet (LLM-only knowledge).
 - MCP proxy/server does not support direct tool invocation from Python/browser clients.
-- Browser-based UIs (Inspector, dashboard) may fail to connect to MCP proxy due to missing CORS headers.
-- For MVP, tools are called directly in Python.
 - LLM backend (Ollama/Qwen3) may be slow or error-prone on low-resource hardware.
+- Some agent confusion/overlap may occur (e.g., Finance agent answering weather questions).
 - See README.md, QUICKSTART.md, and KNOWN_ISSUES_AND_GOTCHAS.md for details.
 
 ---
@@ -87,14 +85,15 @@
 - [x] Add/adjust integration tests for all MCP tools.
 - [x] Gather feedback on dashboard UI and context-aware tools.
 - [x] LLM-powered CLI chat and Orchestrator agent.
+- [x] Multi-agent orchestration and delegation.
 
 ## Immediate Next Steps
 
-- [ ] Plan and document next sprint: agent-to-agent delegation, tool invocation from LLM plans, error handling, and polish.
+- [ ] Plan and document next sprint: tool-calling, RAG, agent specialization, plugin API, and polish.
 - [ ] Update CHANGELOG.md for all recent changes.
 - [ ] Add/expand cross-domain workflows (e.g., "plan my week", "daily health check-in").
-- [ ] Update AGENT_GUIDES/CLUSTER.md files with new tool and context info.
-- [ ] Review and update KNOWN_ISSUES_AND_GOTCHAS.md for DB/MCP/LLM/UI caveats.
+- [ ] Update AGENT_GUIDES/CLUSTER.md files with new orchestration and context info.
+- [ ] Review and update KNOWN_ISSUES_AND_GOTCHAS.md for LLM/tool/RAG caveats.
 
 ---
 

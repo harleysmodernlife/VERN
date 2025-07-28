@@ -75,6 +75,10 @@
 - For more models, see [Ollama Library](https://ollama.com/library).
 - For best performance on low-resource hardware, use quantized GGUF models or run Ollama in CPU mode (expect slower inference).
 - **If you see timeouts or backend errors in the CLI, try restarting Ollama, switching to a smaller model, or increasing the timeout in `src/mvp/qwen3_llm.py`.**
+- If you get a "ModuleNotFoundError: No module named 'src'" error, run the CLI as a module:  
+  ```
+  python3 -m src.mvp.cli
+  ```
 - See [KNOWN_ISSUES_AND_GOTCHAS.md](KNOWN_ISSUES_AND_GOTCHAS.md) for more troubleshooting tips.
 
 ---
@@ -83,16 +87,22 @@
 
 ### Manual Testing
 
-1. Navigate to the MVP directory:
+1. **Run the CLI from the project root:**
    ```
-   cd src/mvp/
-   ```
-2. Run the CLI:
-   ```
-   python3 cli.py
+   python3 -m src.mvp.cli
    ```
    - The CLI is now LLM-powered by default (Qwen3 via Ollama). Type natural language or explicit tool commands.
    - Try all options and see agent responses.
+
+2. **What to Expect:**
+   - Multi-agent orchestration: Orchestrator delegates to clusters and aggregates their responses.
+   - Sample output:
+     ```
+     You: what's the weather like in tokyo?
+     (orchestrator) (plan: Involve research and finance clusters to answer the question.)
+     [Research]: The weather in Tokyo varies depending on time of year. In spring, it's often sunny, while in autumn, it can be cloudy. Humidity is high in Tokyo, so you might expect a warm and humid climate.
+     [Finance]: I'm unable to provide specific weather information as the context doesn't include any weather-related details. If you have questions about budgeting, resource allocation, or other finance-related topics, feel free to ask!
+     ```
 
 ### Automated Testing
 

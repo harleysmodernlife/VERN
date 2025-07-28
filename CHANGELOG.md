@@ -16,24 +16,25 @@
 
 ## Changelog
 
-### 2025-07-28 [LLM-Powered CLI Chat, Context Management, and Doc Suite Update]
+### 2025-07-28 [Multi-Agent Orchestration, CLI Integration, and Doc Suite Update]
 
 **Added**
-- CLI chat is now LLM-powered by default (Qwen3 via Ollama), with tool overrides for explicit commands.
-- Context passing and persistent memory for LLM-powered agents.
-- Troubleshooting and error handling for LLM/agent issues in README.md, QUICKSTART.md, and KNOWN_ISSUES_AND_GOTCHAS.md.
-- Updated onboarding and extension instructions for LLM-powered agents in AGENT_GUIDES/README.md.
-- Hardware requirements, model selection, and troubleshooting tips in QUICKSTART.md.
+- Multi-agent orchestration: Orchestrator agent now delegates to all LLM-powered clusters and aggregates results.
+- LLM-powered response functions for all clusters (Research, Finance, Health, Admin, etc.).
+- CLI chat now routes user input through Orchestrator for multi-agent workflows.
+- Context/history is passed to agents for smarter, context-aware answers.
+- Updated README.md, QUICKSTART.md, TASKS_AND_TODO.md, AGENT_GUIDES/README.md, and KNOWN_ISSUES_AND_GOTCHAS.md for new architecture and milestone.
+- Troubleshooting for Ollama/model errors, agent confusion, and module import issues.
 
 **Changed**
-- Updated README.md, TASKS_AND_TODO.md, KNOWN_ISSUES_AND_GOTCHAS.md, QUICKSTART.md, and AGENT_GUIDES/README.md to reflect LLM-powered architecture and workflows.
-- Clarified agent extension, context management, and error handling best practices.
-- Improved crosslinking and doc hygiene protocols.
+- All agent modules are now modular and ready for plugins, tools, and future upgrades.
+- Improved onboarding, extension, and troubleshooting instructions in all core docs.
+- Clarified current limitations (LLM-only knowledge, no real-time tools, agent overlap).
 
 **Lessons**
-- LLM-powered CLI chat enables more natural, context-aware agent workflows.
-- Robust troubleshooting and context management are essential for local LLMs.
-- Keeping docs in sync with code and onboarding is critical for world-class AI projects.
+- Multi-agent orchestration unlocks teamwork and richer workflows, even with LLM-only knowledge.
+- Prompt engineering and context passing are key for agent specialization and delegation.
+- Robust troubleshooting and clear onboarding are essential for new contributors and users.
 
 ---
 
