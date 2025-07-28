@@ -2,6 +2,28 @@
 
 ---
 
+# Context Checkpoint (2025-07-27)
+
+**Current Sprint:**  
+- Refactor agent and chat code to use direct Python tool calls (not MCP).
+- Document MCP limitations and future plans for integration.
+- Continue building modular clusters, persistent memory, and logging.
+
+**Blockers:**  
+- MCP proxy/server does not support direct tool invocation from Python/browser clients.
+- Browser-based UIs (Inspector, dashboard) may fail to connect to MCP proxy due to missing CORS headers.
+
+**Next Steps:**  
+- [x] Update README.md to reflect new MVP approach (direct Python tool calls).
+- [ ] Refactor tool definitions to Python functions (e.g., in src/mvp/tool_interface.py).
+- [ ] Update agent/chat code (src/mvp/cli.py) to call tool functions directly.
+- [ ] Test agent+tools end-to-end in CLI chat.
+- [ ] Update docs and logs after each confirmed change.
+- [ ] Add to KNOWN_ISSUES_AND_GOTCHAS.md: MCP limitations, CORS issues, and future plans.
+- [ ] Plan for future MCP integration when ecosystem matures.
+
+---
+
 # AI Contributor Workflow & Sprint Protocol
 
 - **Sprint Planning:**  
@@ -11,11 +33,11 @@
 
 - **Local Commits:**  
   - Commit after each working feature, test, or doc update.
-  - Use clear, descriptive commit messages (e.g., "feat: add live dashboard tool invocation").
+  - Use clear, descriptive commit messages (e.g., "feat: refactor tool invocation to Python functions").
   - Do NOT push to remote until milestone is reached and all tests pass.
 
 - **Push to Remote:**  
-  - Only push after a sprint milestone (e.g., dashboard live, workflow working, all tests green).
+  - Only push after a sprint milestone (e.g., agent+tools working, all tests green).
   - Before push:  
     - Run all tests (manual and automated).
     - Update docs and context summary.
@@ -41,13 +63,12 @@
 
 ---
 
-# MCP Server & Tool API Feedback / TODO
+# Known Issues & Gotchas
 
-- [ ] Gather feedback from users and agents on MCP tool usability (Inspector, CLI, etc.)
-- [ ] Track issues, feature requests, and pain points for all tools (echo, add, file ops, cluster_status, etc.)
-- [ ] Prioritize improvements and bugfixes based on feedback.
-- [ ] Document UI/extension progress and integration plans.
-- [ ] Keep all docs up to date as changes are made.
+- MCP proxy/server does not support direct tool invocation from Python/browser clients.
+- Browser-based UIs (Inspector, dashboard) may fail to connect to MCP proxy due to missing CORS headers.
+- For MVP, tools are called directly in Python.
+- See README.md and KNOWN_ISSUES_AND_GOTCHAS.md for details.
 
 ---
 
@@ -62,8 +83,9 @@
 
 ## Immediate Next Steps
 
-- [ ] Connect vern_dashboard.html to MCP server for live tool invocation (AJAX/WebSocket).
-- [ ] Expand dashboard UI: show agent/cluster status, logs, and workflow history.
+- [ ] Refactor tool code and agent logic for direct Python calls.
+- [ ] Test agent+tools end-to-end in CLI chat.
+- [ ] Update docs and logs after each confirmed change.
 - [ ] Add/expand cross-domain workflows (e.g., "plan my week", "daily health check-in").
 - [ ] Update AGENT_GUIDES/CLUSTER.md files with new tool and context info.
 - [ ] Update CHANGELOG.md for all recent changes.

@@ -28,6 +28,45 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [PROJECT_OVERVIEW.md](PROJECT_OVERVIE
 
 ---
 
+## Life OS Roadmap & Vertical Slice MVP
+
+### **Current MVP Approach (2025-07)**
+- **Tool invocation is now direct Python, not MCP.**
+- **Agents and chat interface call Python functions for tools (echo, add, journal, etc.).**
+- **MCP is used for future extensibility, but not for core agent/tool calls.**
+- **Known Issue:** MCP proxy/server does not support direct tool invocation from Python/browser clients. See [KNOWN_ISSUES_AND_GOTCHAS.md](KNOWN_ISSUES_AND_GOTCHAS.md).
+
+### **Next Steps**
+- Refactor agent and chat code to use direct Python tool calls.
+- Document MCP limitations and future plans for integration.
+- Continue building modular clusters, persistent memory, and logging.
+
+---
+
+## Vertical Slice MVP: End-to-End Stack
+
+**Goal:**  
+A working “personal AI” (VERN) with persistent memory, tool invocation, and chat interface.
+
+**MVP Stack:**
+- Core agent (VERN) with chat UI (CLI or minimal web)
+- Persistent memory (SQLite/ChromaDB)
+- Tool API (Python functions) with a few working tools
+- End-to-end test: user chats, agent remembers, tools invoked, results returned
+
+---
+
+## Cluster Self-Check Protocol
+
+If you get lost or need to re-orient:
+- Read [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) for the big picture and cluster/team structure.
+- Review [TASKS_AND_TODO.md](TASKS_AND_TODO.md) for the current sprint, blockers, and context.
+- Summarize the current cluster goal before acting or making changes.
+- Always update TASKS_AND_TODO.md after each confirmed change.
+- If you’re unsure, ask for review or clarification before proceeding.
+
+---
+
 ## MCP Server Integration
 
 VERN includes a minimal, modular [MCP (Model Context Protocol)](https://modelcontext.org/) server in `src/mvp/mcp_server.py` using the FastMCP API. This enables tool discovery and invocation via the MCP CLI and Inspector.
@@ -46,56 +85,12 @@ VERN includes a minimal, modular [MCP (Model Context Protocol)](https://modelcon
 - **Extensible:** Add new tools with a single function and decorator.
 - **MCP CLI Compatible:** Works with `mcp dev src/mvp/mcp_server.py` and the MCP Inspector.
 
-### Quickstart
+### Known Issues
 
-1. **Create and activate a Python virtual environment:**
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
-
-2. **Install MCP CLI and dependencies:**
-   ```bash
-   pip install "mcp[cli]"
-   ```
-
-3. **Run the server with MCP CLI:**
-   ```bash
-   mcp dev src/mvp/mcp_server.py
-   ```
-
-4. **Open the MCP Inspector URL provided in the terminal to interactively test tools.**
-
-### How to Extend
-
-- Add a new `@mcp.tool()` function in `src/mvp/mcp_server.py`.
-- The function name becomes the tool name; arguments define the input schema.
-- The return value is sent as the tool's output.
-- See the code comments in `src/mvp/mcp_server.py` for more details.
-
-### Inspector & UI Integration
-
-- **MCP Inspector:**  
-  When you run `mcp dev src/mvp/mcp_server.py`, the terminal will display a link to the MCP Inspector (usually http://localhost:6274).  
-  Open this link in your browser to interactively test all registered tools, view schemas, and inspect tool results in real time.
-
-- **Cockpit/Dashboard UI (Prototype):**  
-  See [vern_dashboard.html](vern_dashboard.html) for a minimal web UI prototype.  
-  This dashboard lets you invoke MCP tools, enter parameters, and view results visually.  
-  (Future: Live connection to MCP server for real-time workflows.)
-
-- **UI/Extension Roadmap:**  
-  Plans include a minimal web UI and/or VSCode extension for invoking MCP tools directly from your development environment.  
-  Feedback and contributions are welcome—see TASKS_AND_TODO.md for progress.
-
-### Troubleshooting
-
-- Ensure your venv is activated before running `mcp`.
-- If you see "No server object found", confirm you are using `FastMCP` and a global `mcp` object.
-- For more, see [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk).
-
-**Future Vision:**  
-VERN aims to become a universal, adaptive tool for everyone and everything—see [FUTURE_VISION_AND_ROADMAP.md](FUTURE_VISION_AND_ROADMAP.md) for long-term goals and direction.
+- **Tool invocation from Python/browser clients is not supported by MCP proxy/server as of July 2025.**
+- **For MVP, tools are called directly in Python.**
+- **See [KNOWN_ISSUES_AND_GOTCHAS.md](KNOWN_ISSUES_AND_GOTCHAS.md) for details.**
 
 ---
+
 **Read first, then amend docs—never assume state. Never truncate with “remains unchanged”—always show full, updated context. Keep project/task/todo lists up to date after each confirmed change. Work as a team. Watch for gotchas and snags. Your work will be tested—be mindful of each task. Evaluate your work with a critical eye for errors.**

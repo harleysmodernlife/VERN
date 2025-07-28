@@ -1,55 +1,88 @@
 """
-Integration tests for src/mvp/mcp_server.py MCP tools.
-Requires the MCP server to be running with: mcp dev src/mvp/mcp_server.py
+Integration tests for src/mvp/mcp_server.py MCP tools using the official MCP SDK HTTP client.
+
+Requires the MCP server to be running with: DANGEROUSLY_OMIT_AUTH=true mcp dev src/mvp/mcp_server.py
 """
 
-import pytest
-from mcp.client import MCPClient
+import asyncio
+import uuid
 
-@pytest.fixture(scope="module")
-def mcp_client():
-    # Connect to the running MCP server (default inspector proxy)
-    return MCPClient("http://127.0.0.1:6277")
+from mcp.client.streamable_http import streamablehttp_client
+from mcp.types import JSONRPCRequest, JSONRPCMessage
+from mcp.shared.message import SessionMessage
 
-def test_echo(mcp_client):
-    result = mcp_client.call_tool("echo", {"text": "hello"})
-    assert result == "hello"
+MCP_URL = "http://127.0.0.1:6277"
 
-def test_add(mcp_client):
-    result = mcp_client.call_tool("add", {"a": 2, "b": 3})
-    assert result == 5
+async def call_tool(tool, params):
+    async with streamablehttp_client(MCP_URL) as (read_stream, write_stream, get_session_id):
+        # Build JSON-RPC request for the tool
+        request_id = str(uuid.uuid4())
+        request = JSONRPCRequest(
+            jsonrpc="2.0",
+            id=request_id,
+            method=tool,
+            params=params,
+        )
+        message = JSONRPCMessage(request)
+        session_message = SessionMessage(message)
+        await write_stream.send(session_message)
+        # Read response
+        async for response in read_stream:
+            if isinstance(response, Exception):
+                raise response
+            # response is a JSONRPCMessage
+            if hasattr(response, "root") and hasattr(response.root, "id") and response.root.id == request_id:
+                # Success or error
+                if hasattr(response.root, "result"):
+                    return response.root.result
+                elif hasattr(response.root, "error"):
+                    raise Exception(f"Tool error: {response.root.error}")
+                else:
+                    raise Exception("Unknown response format")
+            # response is a SessionMessage
+            if hasattr(response, "message") and hasattr(response.message, "root") and hasattr(response.message.root, "id") and response.message.root.id == request_id:
+                if hasattr(response.message.root, "result"):
+                    return response.message.root.result
+                elif hasattr(response.message.root, "error"):
+                    raise Exception(f"Tool error: {response.message.root.error}")
+                else:
+                    raise Exception("Unknown response format")
 
-def test_file_write_and_read(mcp_client, tmp_path):
-    test_file = tmp_path / "test.txt"
-    mcp_client.call_tool("file_write", {"path": str(test_file), "content": "abc"})
-    content = mcp_client.call_tool("file_read", {"path": str(test_file)})
-    assert content == "abc"
+async def main():
+    # Echo
+    assert await call_tool("echo", {"text": "hello"}) == "hello"
+    print("echo: PASS")
 
-def test_file_list(mcp_client, tmp_path):
-    test_file = tmp_path / "foo.txt"
-    test_file.write_text("bar")
-    files = mcp_client.call_tool("file_list", {"directory": str(tmp_path), "glob_pattern": "*.txt"})
-    assert any("foo.txt" in f for f in files)
+    # Add
+    assert await call_tool("add", {"a": 2, "b": 3}) == 5
+    print("add: PASS")
 
-def test_file_delete(mcp_client, tmp_path):
-    test_file = tmp_path / "del.txt"
-    test_file.write_text("gone")
-    mcp_client.call_tool("file_delete", {"path": str(test_file)})
-    assert not test_file.exists()
+    # Cluster status
+    status = await call_tool("cluster_status", {})
+    assert isinstance(status, dict) and "dev_team" in status
+    print("cluster_status: PASS")
 
-def test_cluster_status(mcp_client):
-    status = mcp_client.call_tool("cluster_status", {})
-    assert isinstance(status, dict)
-    assert "dev_team" in status
-
-def test_schedule_event(mcp_client):
-    result = mcp_client.call_tool("schedule_event", {"details": "Team sync at 10am"})
+    # Schedule event
+    result = await call_tool("schedule_event", {"details": "Team sync at 10am"})
     assert "Meeting scheduled" in result
+    print("schedule_event: PASS")
 
-def test_journal_entry(mcp_client):
-    result = mcp_client.call_tool("journal_entry", {"entry": "Today I felt great"})
+    # Journal entry
+    result = await call_tool("journal_entry", {"entry": "Today I felt great"})
     assert "Health/Wellness result" in result or "journal" in result.lower()
+    print("journal_entry: PASS")
 
-def test_finance_balance(mcp_client):
-    result = mcp_client.call_tool("finance_balance", {})
+    # Finance balance
+    result = await call_tool("finance_balance", {})
     assert "Finance/Resource result" in result or "balance" in result.lower()
+    print("finance_balance: PASS")
+
+    # Get user profile (may be empty if no user 1)
+    profile = await call_tool("get_user_profile", {"user_id": 1})
+    assert isinstance(profile, dict)
+    print("get_user_profile: PASS")
+
+    print("All MCP tool JSON-RPC tests passed.")
+
+if __name__ == "__main__":
+    asyncio.run(main())

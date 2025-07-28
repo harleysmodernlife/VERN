@@ -16,6 +16,26 @@
 
 ## Changelog
 
+### 2025-07-27 [Python Tool Refactor, MVP CLI Agent+Tools, MCP Known Issues]
+
+**Added**
+- Refactored all tool invocation to direct Python functions (src/mvp/tool_interface.py).
+- Updated CLI chat (src/mvp/cli.py) to call Python tools directly: echo, add, journal, schedule, finance, profile.
+- Persistent memory and logging via SQLite remain unchanged.
+- Updated README.md, TASKS_AND_TODO.md, and KNOWN_ISSUES_AND_GOTCHAS.md to document new MVP approach and MCP limitations.
+- Added protocol for next steps and sprint planning in TASKS_AND_TODO.md.
+
+**Changed**
+- MCP is now used for future extensibility, not for core agent/tool calls.
+- CLI chat no longer depends on MCP proxy/server or Inspector for tool invocation.
+- Updated documentation to reflect new MVP architecture and workflow.
+
+**Lessons**
+- Direct Python tool calls enable a real agent+tools MVP even when MCP is not ready for Python/browser clients.
+- Documenting limitations and protocol for next steps keeps the project on track and transparent.
+
+---
+
 ### 2025-07-27 [Context Integration, Dashboard UI, and New MCP Tools]
 
 **Added**

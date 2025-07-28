@@ -11,6 +11,10 @@ Extensible: see instructions at the end of this file.
 Author: VERN Team
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 from mcp.server.fastmcp import FastMCP
 
 # Import agent clusters for tool integration

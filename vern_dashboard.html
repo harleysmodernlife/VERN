@@ -1,7 +1,6 @@
 <!--
 VERN Cockpit/Dashboard UI (MVP Mockup)
-This is a static HTML prototype for managing agents, tools, and workflows.
-Future versions will connect to the MCP server via HTTP/WebSocket.
+Now connects to the MCP server via HTTP POST (JSON-RPC) with authentication token support.
 -->
 
 <!DOCTYPE html>
@@ -17,17 +16,31 @@ Future versions will connect to the MCP server via HTTP/WebSocket.
     input, textarea { width: 100%; padding: 0.5em; margin-top: 0.2em; }
     button { margin-top: 0.7em; padding: 0.5em 1.2em; background: #2b3a42; color: #fff; border: none; border-radius: 4px; }
     .result { margin-top: 0.5em; background: #e6f7ff; padding: 0.5em; border-radius: 4px; }
+    .error { color: #b00; background: #ffeaea; }
+    .auth-box { margin-bottom: 2em; padding: 1em; background: #f0f0f8; border-radius: 8px; }
+    .auth-label { font-weight: bold; }
   </style>
 </head>
 <body>
   <h1>VERN Cockpit Dashboard (MVP)</h1>
   <p>This is a prototype UI for managing agents, tools, and workflows.<br>
-     (Future: Connect to MCP server for live tool invocation.)</p>
+     Now connects to the MCP server for live tool invocation.<br>
+     <b>Make sure the MCP server is running (see README Quickstart).</b></p>
+
+  <div class="auth-box">
+    <span class="auth-label">MCP Auth Token:</span>
+    <input id="mcp_token" type="text" style="width:60%" placeholder="Paste MCP-Proxy-Auth-Token here" />
+    <button onclick="saveToken()">Save Token</button>
+    <span id="token_status"></span>
+    <div style="font-size: 0.9em; color: #555; margin-top: 0.5em;">
+      Find your token in the MCP CLI output or Inspector URL (see terminal).
+    </div>
+  </div>
 
   <div class="tool">
     <h2>Echo Tool</h2>
     <label>Text: <input id="echo_text" type="text" value="Hello, VERN!"></label>
-    <button onclick="showResult('echo', {text: document.getElementById('echo_text').value})">Run</button>
+    <button onclick="invokeTool('echo', {text: document.getElementById('echo_text').value}, 'echo_result')">Run</button>
     <div id="echo_result" class="result"></div>
   </div>
 
@@ -35,43 +48,116 @@ Future versions will connect to the MCP server via HTTP/WebSocket.
     <h2>Add Tool</h2>
     <label>A: <input id="add_a" type="number" value="2"></label>
     <label>B: <input id="add_b" type="number" value="3"></label>
-    <button onclick="showResult('add', {a: parseFloat(document.getElementById('add_a').value), b: parseFloat(document.getElementById('add_b').value)})">Run</button>
+    <button onclick="invokeTool('add', {a: parseFloat(document.getElementById('add_a').value), b: parseFloat(document.getElementById('add_b').value)}, 'add_result')">Run</button>
     <div id="add_result" class="result"></div>
   </div>
 
   <div class="tool">
     <h2>Schedule Event (Admin)</h2>
     <label>Details: <input id="sched_details" type="text" value="Team sync at 10am"></label>
-    <button onclick="showResult('schedule_event', {details: document.getElementById('sched_details').value})">Run</button>
+    <button onclick="invokeTool('schedule_event', {details: document.getElementById('sched_details').value}, 'sched_result')">Run</button>
     <div id="sched_result" class="result"></div>
   </div>
 
   <div class="tool">
     <h2>Journal Entry (Health/Wellness)</h2>
     <label>Entry: <textarea id="journal_entry">Today I felt great.</textarea></label>
-    <button onclick="showResult('journal_entry', {entry: document.getElementById('journal_entry').value})">Run</button>
+    <button onclick="invokeTool('journal_entry', {entry: document.getElementById('journal_entry').value}, 'journal_result')">Run</button>
     <div id="journal_result" class="result"></div>
   </div>
 
   <div class="tool">
     <h2>Finance Balance</h2>
-    <button onclick="showResult('finance_balance', {})">Run</button>
+    <button onclick="invokeTool('finance_balance', {}, 'finance_result')">Run</button>
     <div id="finance_result" class="result"></div>
   </div>
 
   <div class="tool">
     <h2>Get User Profile</h2>
     <label>User ID: <input id="profile_user_id" type="number" value="1"></label>
-    <button onclick="showResult('get_user_profile', {user_id: parseInt(document.getElementById('profile_user_id').value)})">Run</button>
+    <button onclick="invokeTool('get_user_profile', {user_id: parseInt(document.getElementById('profile_user_id').value)}, 'profile_result')">Run</button>
     <div id="profile_result" class="result"></div>
   </div>
 
   <script>
-    // This is a mockup: just echoes the input as "result".
-    // Future: Replace with AJAX calls to MCP server.
-    function showResult(tool, params) {
-      let resultDiv = document.getElementById(tool + "_result");
-      resultDiv.textContent = "Result: " + JSON.stringify(params);
+    // MCP server endpoint (default: localhost:6277)
+    const MCP_URL = "http://localhost:6277";
+
+    // Save token to localStorage
+    function saveToken() {
+      const token = document.getElementById("mcp_token").value.trim();
+      if (token) {
+        localStorage.setItem("mcp_auth_token", token);
+        document.getElementById("token_status").textContent = "Token saved!";
+        document.getElementById("token_status").style.color = "#090";
+      } else {
+        localStorage.removeItem("mcp_auth_token");
+        document.getElementById("token_status").textContent = "Token cleared.";
+        document.getElementById("token_status").style.color = "#b00";
+      }
+    }
+
+    // On load, pre-fill token if present
+    window.onload = function() {
+      const token = localStorage.getItem("mcp_auth_token");
+      if (token) {
+        document.getElementById("mcp_token").value = token;
+        document.getElementById("token_status").textContent = "Token loaded.";
+        document.getElementById("token_status").style.color = "#090";
+      }
+    };
+
+    // Generate a random UUID (RFC4122 v4)
+    function uuidv4() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    // Invoke a tool via MCP JSON-RPC
+    async function invokeTool(method, params, resultDivId) {
+      const resultDiv = document.getElementById(resultDivId);
+      resultDiv.textContent = "Running...";
+      resultDiv.classList.remove("error");
+      const request = {
+        jsonrpc: "2.0",
+        id: uuidv4(),
+        method: method,
+        params: params
+      };
+      const token = localStorage.getItem("mcp_auth_token");
+      let headers = {
+        "Content-Type": "application/json"
+      };
+      if (token) {
+        headers["MCP-Proxy-Auth-Token"] = token;
+      }
+      try {
+        const response = await fetch(MCP_URL, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(request)
+        });
+        if (!response.ok) {
+          resultDiv.textContent = "HTTP Error: " + response.status;
+          resultDiv.classList.add("error");
+          return;
+        }
+        const data = await response.json();
+        if (data.result !== undefined) {
+          resultDiv.textContent = "Result: " + JSON.stringify(data.result, null, 2);
+        } else if (data.error) {
+          resultDiv.textContent = "Error: " + JSON.stringify(data.error, null, 2);
+          resultDiv.classList.add("error");
+        } else {
+          resultDiv.textContent = "Unknown response: " + JSON.stringify(data);
+          resultDiv.classList.add("error");
+        }
+      } catch (err) {
+        resultDiv.textContent = "Request failed: " + err;
+        resultDiv.classList.add("error");
+      }
     }
   </script>
 </body>

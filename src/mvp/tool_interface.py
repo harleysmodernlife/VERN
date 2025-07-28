@@ -1,40 +1,60 @@
 """
-Tool Interface and Registry for VERN Agents
-
-Defines a base Tool class and a registry for agent tool-calling.
+VERN Tool Interface (Python Functions)
+--------------------------------------
+Defines core tools as Python functions for direct agent invocation.
 """
 
-from typing import Any, Dict, Callable
+def echo(text):
+    """Returns the input string."""
+    return text
 
-class Tool:
-    def __init__(self, name: str, description: str, func: Callable[[Dict[str, Any]], Any]):
-        self.name = name
-        self.description = description
-        self.func = func
+def add(a, b):
+    """Returns the sum of two numbers."""
+    return a + b
 
-    def call(self, params: Dict[str, Any]) -> Any:
-        return self.func(params)
+def journal_entry(entry, db_path="db/vern.db"):
+    """Adds a health/wellness journal entry to the database."""
+    import sqlite3
+    import datetime
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS journal (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        entry TEXT
+    )
+    """)
+    c.execute("INSERT INTO journal (timestamp, entry) VALUES (?, ?)",
+              (datetime.datetime.now().isoformat(), entry))
+    conn.commit()
+    conn.close()
+    return "Journal entry saved."
 
-# Example tool implementations
-def echo_tool(params):
-    return params.get("message", "")
+def schedule_event(details):
+    """Schedules an event (mock implementation)."""
+    return f"Event scheduled: {details}"
 
-def add_tool(params):
-    return params.get("a", 0) + params.get("b", 0)
+def finance_balance():
+    """Returns a mock finance/resource balance."""
+    return {"balance": 1000, "currency": "USD"}
 
-# Tool registry
-TOOL_REGISTRY = {
-    "echo": Tool(
-        name="echo",
-        description="Echoes back the provided message.",
-        func=echo_tool
-    ),
-    "add": Tool(
-        name="add",
-        description="Adds two numbers (a + b).",
-        func=add_tool
-    ),
-}
-
-def get_tool(name: str) -> Tool:
-    return TOOL_REGISTRY.get(name)
+def get_user_profile(user_id, db_path="db/vern.db"):
+    """Fetches a user profile from the database (mock implementation)."""
+    import sqlite3
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS user_profile (
+        user_id INTEGER PRIMARY KEY,
+        name TEXT,
+        email TEXT
+    )
+    """)
+    c.execute("SELECT name, email FROM user_profile WHERE user_id=?", (user_id,))
+    row = c.fetchone()
+    conn.close()
+    if row:
+        return {"user_id": user_id, "name": row[0], "email": row[1]}
+    else:
+        return {"error": "User not found."}

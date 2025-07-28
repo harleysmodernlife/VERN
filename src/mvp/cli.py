@@ -1,88 +1,122 @@
 """
-MVP CLI Entry Point
-
-Simulates user interaction with the Orchestrator, Dev Team, Admin, Knowledge Broker, and Security/Privacy clusters.
+VERN CLI Chat Interface (Vertical Slice MVP, Python Tools)
+----------------------------------------------------------
+A simple command-line chat interface for the VERN agent.
+Supports persistent memory (SQLite), direct Python tool invocation, and logging.
 """
 
-from orchestrator import Orchestrator
-from dev_team import DevTeam
-from admin import Admin
-from knowledge_broker import KnowledgeBroker
-from security_privacy import SecurityPrivacy
-from message_bus import MessageBus
+import sys
+import readline
+import sqlite3
+import datetime
+import os
+
+# Fix import for direct CLI run
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+from src.mvp.tool_interface import echo, add, journal_entry, schedule_event, finance_balance, get_user_profile
+
+DB_PATH = "db/vern.db"
+
+def ensure_db():
+    os.makedirs("db", exist_ok=True)
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS chat_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        sender TEXT,
+        message TEXT
+    )
+    """)
+    conn.commit()
+    conn.close()
+
+def log_message(sender, message):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("INSERT INTO chat_log (timestamp, sender, message) VALUES (?, ?, ?)",
+              (datetime.datetime.now().isoformat(), sender, message))
+    conn.commit()
+    conn.close()
+
+def get_last_user_message():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT message FROM chat_log WHERE sender='user' ORDER BY id DESC LIMIT 1")
+    row = c.fetchone()
+    conn.close()
+    return row[0] if row else None
+
+def print_history(n=10):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT timestamp, sender, message FROM chat_log ORDER BY id DESC LIMIT ?", (n,))
+    rows = c.fetchall()
+    conn.close()
+    for row in reversed(rows):
+        print(f"[{row[0][:19]}] {row[1]}: {row[2]}")
+
+def vern_response(user_input):
+    # Direct Python tool invocation logic for MVP
+    if user_input.startswith("echo "):
+        text = user_input[5:]
+        result = echo(text)
+        return f"(echo tool) {result}"
+    elif user_input.startswith("add "):
+        try:
+            parts = user_input[4:].split()
+            a, b = float(parts[0]), float(parts[1])
+            result = add(a, b)
+            return f"(add tool) {result}"
+        except Exception as e:
+            return f"Error: {e}"
+    elif user_input.startswith("journal "):
+        entry = user_input[8:]
+        result = journal_entry(entry)
+        return f"(journal tool) {result}"
+    elif user_input.startswith("schedule "):
+        details = user_input[9:]
+        result = schedule_event(details)
+        return f"(schedule tool) {result}"
+    elif user_input == "finance":
+        result = finance_balance()
+        return f"(finance tool) {result}"
+    elif user_input.startswith("profile "):
+        try:
+            user_id = int(user_input[8:])
+            result = get_user_profile(user_id)
+            return f"(profile tool) {result}"
+        except Exception as e:
+            return f"Error: {e}"
+    elif user_input == "last":
+        last = get_last_user_message()
+        return f"Last thing you said: {last}" if last else "No previous messages found."
+    elif user_input == "history":
+        print_history()
+        return ""
+    else:
+        # Default: just echo for now
+        return f"VERN: I heard you say '{user_input}'. (Try 'echo', 'add', 'journal', 'schedule', 'finance', 'profile', 'last', or 'history')"
 
 def main():
-    print("=== VERN MVP CLI ===")
-    dev_team = DevTeam()
-    admin = Admin()
-    knowledge_broker = KnowledgeBroker()
-    security_privacy = SecurityPrivacy()
-    orchestrator = Orchestrator(dev_team, admin)
-    bus = MessageBus()
-
-    # Register handlers for message types
-    bus.register("feature_request", lambda req: dev_team.implement_feature(req))
-    bus.register("meeting_request", lambda details: admin.schedule_meeting(details))
-    bus.register("context_lookup", lambda query: knowledge_broker.context_lookup(query))
-    bus.register("cross_cluster_query", lambda req: knowledge_broker.cross_cluster_query(req))
-    bus.register("security_check", lambda action: security_privacy.monitor_action(action))
-
+    ensure_db()
+    print("Welcome to VERN CLI Chat!")
+    print("Type your message. Try 'echo <text>', 'add <a> <b>', 'journal <entry>', 'schedule <details>', 'finance', 'profile <user_id>', 'last', or 'history'. Ctrl+C to exit.")
     while True:
-        print("\nOptions:")
-        print("1. Request new feature")
-        print("2. Schedule meeting")
-        print("3. Knowledge Broker: Context lookup")
-        print("4. Knowledge Broker: Cross-cluster query")
-        print("5. Security/Privacy: Monitor action")
-        print("6. Call a tool (orchestrator)")
-        print("7. Exit")
-        choice = input("Select an option: ").strip()
-
-        if choice == "1":
-            feature = input("Describe the feature to implement: ").strip()
-            orchestrator.log("Received feature request from user.")
-            result = bus.send("feature_request", feature)
-            dev_team.log(result)
-            admin.notify_user(result)
-        elif choice == "2":
-            details = input("Enter meeting details: ").strip()
-            orchestrator.log("Received meeting request from user.")
-            result = bus.send("meeting_request", details)
-            admin.log_action(result)
-            admin.notify_user(result)
-        elif choice == "3":
-            query = input("Enter context to look up: ").strip()
-            result = bus.send("context_lookup", query)
-            knowledge_broker.log(result)
-        elif choice == "4":
-            req = input("Enter cross-cluster query: ").strip()
-            result = bus.send("cross_cluster_query", req)
-            knowledge_broker.log(result)
-        elif choice == "5":
-            action = input("Enter action to monitor for security/privacy: ").strip()
-            result = bus.send("security_check", action)
-            security_privacy.log(result)
-        elif choice == "6":
-            tool_name = input("Enter tool name: ").strip()
-            params_input = input("Enter params as key:value pairs (comma separated): ").strip()
-            params = {}
-            if params_input:
-                for pair in params_input.split(","):
-                    if ":" in pair:
-                        k, v = pair.split(":", 1)
-                        k = k.strip()
-                        v = v.strip()
-                        # Try to convert to int if possible
-                        if v.isdigit():
-                            v = int(v)
-                        params[k] = v
-            result = orchestrator.call_tool(tool_name, params)
-            print(f"Tool result: {result}")
-        elif choice == "7":
-            print("Exiting MVP CLI.")
+        try:
+            user_input = input("You: ").strip()
+            if not user_input:
+                continue
+            log_message("user", user_input)
+            response = vern_response(user_input)
+            if response:
+                print(response)
+                log_message("vern", response)
+        except (KeyboardInterrupt, EOFError):
+            print("\nGoodbye!")
             break
-        else:
-            print("Invalid option. Try again.")
 
 if __name__ == "__main__":
     main()
