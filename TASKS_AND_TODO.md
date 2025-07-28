@@ -2,25 +2,30 @@
 
 ---
 
-# Context Checkpoint (2025-07-27)
+# Context Checkpoint (2025-07-28)
 
 **Current Sprint:**  
-- Refactor agent and chat code to use direct Python tool calls (not MCP).
-- Document MCP limitations and future plans for integration.
-- Continue building modular clusters, persistent memory, and logging.
+- LLM-powered CLI chat is now default (Qwen3 via Ollama).
+- Test LLM-powered Orchestrator in CLI and document results.
+- Update docs and guides for LLM-powered agents, context management, and troubleshooting.
+- Plan next blocks: agent-to-agent delegation, tool invocation from LLM plans, and improved error handling.
 
 **Blockers:**  
 - MCP proxy/server does not support direct tool invocation from Python/browser clients.
 - Browser-based UIs (Inspector, dashboard) may fail to connect to MCP proxy due to missing CORS headers.
+- LLM backend (Ollama/Qwen3) may be slow or error-prone on low-resource hardware.
 
 **Next Steps:**  
-- [x] Update README.md to reflect new MVP approach (direct Python tool calls).
-- [ ] Refactor tool definitions to Python functions (e.g., in src/mvp/tool_interface.py).
-- [ ] Update agent/chat code (src/mvp/cli.py) to call tool functions directly.
-- [ ] Test agent+tools end-to-end in CLI chat.
-- [ ] Update docs and logs after each confirmed change.
-- [ ] Add to KNOWN_ISSUES_AND_GOTCHAS.md: MCP limitations, CORS issues, and future plans.
-- [ ] Plan for future MCP integration when ecosystem matures.
+- [x] Refactor tool definitions to Python functions (src/mvp/tool_interface.py).
+- [x] Update agent/chat code (src/mvp/cli.py) to call tool functions directly.
+- [x] Test agent+tools end-to-end in CLI chat.
+- [x] Add Qwen3 LLM integration module (src/mvp/qwen3_llm.py).
+- [x] Add LLM-powered Orchestrator agent (src/mvp/orchestrator.py).
+- [x] Update README.md, AGENT_GUIDES/README.md, and QUICKSTART.md for LLM-powered agents.
+- [x] Add to KNOWN_ISSUES_AND_GOTCHAS.md: MCP limitations, CORS issues, LLM troubleshooting, and future plans.
+- [x] Plan for future MCP integration when ecosystem matures.
+- [ ] Plan and document next sprint: agent-to-agent delegation, tool invocation from LLM plans, error handling, and polish.
+- [ ] Update CHANGELOG.md for all recent changes.
 
 ---
 
@@ -33,7 +38,7 @@
 
 - **Local Commits:**  
   - Commit after each working feature, test, or doc update.
-  - Use clear, descriptive commit messages (e.g., "feat: refactor tool invocation to Python functions").
+  - Use clear, descriptive commit messages (e.g., "feat: add LLM-powered Orchestrator agent").
   - Do NOT push to remote until milestone is reached and all tests pass.
 
 - **Push to Remote:**  
@@ -42,7 +47,7 @@
     - Run all tests (manual and automated).
     - Update docs and context summary.
     - Human review/approval if possible.
-    - Tag the commit with the sprint/milestone (e.g., "sprint-1-complete").
+    - Tag the commit with the sprint/milestone (e.g., "sprint-2-llm-orchestrator").
 
 - **Branching:**  
   - Use feature branches for major new features or risky changes.
@@ -68,7 +73,8 @@
 - MCP proxy/server does not support direct tool invocation from Python/browser clients.
 - Browser-based UIs (Inspector, dashboard) may fail to connect to MCP proxy due to missing CORS headers.
 - For MVP, tools are called directly in Python.
-- See README.md and KNOWN_ISSUES_AND_GOTCHAS.md for details.
+- LLM backend (Ollama/Qwen3) may be slow or error-prone on low-resource hardware.
+- See README.md, QUICKSTART.md, and KNOWN_ISSUES_AND_GOTCHAS.md for details.
 
 ---
 
@@ -79,17 +85,16 @@
 - [x] Create minimal cockpit/dashboard UI prototype (vern_dashboard.html).
 - [x] Update README and AGENT_GUIDES for new tools and context features.
 - [x] Add/adjust integration tests for all MCP tools.
-- [ ] Gather feedback on dashboard UI and context-aware tools.
+- [x] Gather feedback on dashboard UI and context-aware tools.
+- [x] LLM-powered CLI chat and Orchestrator agent.
 
 ## Immediate Next Steps
 
-- [ ] Refactor tool code and agent logic for direct Python calls.
-- [ ] Test agent+tools end-to-end in CLI chat.
-- [ ] Update docs and logs after each confirmed change.
+- [ ] Plan and document next sprint: agent-to-agent delegation, tool invocation from LLM plans, error handling, and polish.
+- [ ] Update CHANGELOG.md for all recent changes.
 - [ ] Add/expand cross-domain workflows (e.g., "plan my week", "daily health check-in").
 - [ ] Update AGENT_GUIDES/CLUSTER.md files with new tool and context info.
-- [ ] Update CHANGELOG.md for all recent changes.
-- [ ] Review and update KNOWN_ISSUES_AND_GOTCHAS.md for DB/MCP/UI caveats.
+- [ ] Review and update KNOWN_ISSUES_AND_GOTCHAS.md for DB/MCP/LLM/UI caveats.
 
 ---
 

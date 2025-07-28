@@ -31,15 +31,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [PROJECT_OVERVIEW.md](PROJECT_OVERVIE
 ## Life OS Roadmap & Vertical Slice MVP
 
 ### **Current MVP Approach (2025-07)**
-- **Tool invocation is now direct Python, not MCP.**
-- **Agents and chat interface call Python functions for tools (echo, add, journal, etc.).**
+- **The CLI is now LLM-powered by default (Qwen3 via Ollama), with tool overrides for explicit commands.**
+- **Agents and chat interface call Python functions for tools (echo, add, journal, etc.) when requested.**
 - **MCP is used for future extensibility, but not for core agent/tool calls.**
 - **Known Issue:** MCP proxy/server does not support direct tool invocation from Python/browser clients. See [KNOWN_ISSUES_AND_GOTCHAS.md](KNOWN_ISSUES_AND_GOTCHAS.md).
 
 ### **Next Steps**
-- Refactor agent and chat code to use direct Python tool calls.
-- Document MCP limitations and future plans for integration.
-- Continue building modular clusters, persistent memory, and logging.
+- Extend LLM-powered agent logic to more clusters and workflows.
+- Implement agent-to-agent delegation and tool invocation from LLM plans.
+- Continue improving context management, error handling, and documentation.
 
 ---
 
@@ -52,7 +52,27 @@ A working “personal AI” (VERN) with persistent memory, tool invocation, and 
 - Core agent (VERN) with chat UI (CLI or minimal web)
 - Persistent memory (SQLite/ChromaDB)
 - Tool API (Python functions) with a few working tools
+- LLM-powered Orchestrator agent (Qwen3 via Ollama)
 - End-to-end test: user chats, agent remembers, tools invoked, results returned
+
+---
+
+## LLM-Powered Agents (Qwen3 Integration)
+
+**How it works:**
+- Each agent (or cluster) can use Qwen3 (or another LLM) for reasoning, decision-making, and natural language understanding.
+- Agents are guided by role-specific prompts and context (recent messages, logs, data).
+- Example: The Orchestrator agent uses Qwen3 to decide which clusters should handle a user request and generates a plan of action.
+- LLM calls are made via `src/mvp/qwen3_llm.py`, which connects to Qwen3-0.6B running on Ollama.
+
+**How to extend:**
+- Add LLM-powered response functions to any agent (see `src/mvp/orchestrator.py` for an example).
+- Update prompts and context to guide agent behavior.
+- See [AGENT_GUIDES/README.md](AGENT_GUIDES/README.md) for onboarding and extension instructions.
+
+**Troubleshooting LLM/Agent Issues:**
+- If you see timeouts, backend errors, or slow responses, see [KNOWN_ISSUES_AND_GOTCHAS.md](KNOWN_ISSUES_AND_GOTCHAS.md) and [QUICKSTART.md](QUICKSTART.md) for tips.
+- You can switch to a smaller model in `src/mvp/qwen3_llm.py` if needed.
 
 ---
 

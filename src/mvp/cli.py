@@ -1,8 +1,8 @@
 """
-VERN CLI Chat Interface (Vertical Slice MVP, Python Tools)
-----------------------------------------------------------
-A simple command-line chat interface for the VERN agent.
-Supports persistent memory (SQLite), direct Python tool invocation, and logging.
+VERN CLI Chat Interface (LLM-Powered, Multi-Agent)
+--------------------------------------------------
+A smart command-line chat interface for the VERN agent system.
+Supports persistent memory (SQLite), direct Python tool invocation, LLM-powered Orchestrator, and logging.
 """
 
 import sys
@@ -15,6 +15,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from src.mvp.tool_interface import echo, add, journal_entry, schedule_event, finance_balance, get_user_profile
+from src.mvp.orchestrator import orchestrator_respond
 
 DB_PATH = "db/vern.db"
 
@@ -58,8 +59,17 @@ def print_history(n=10):
     for row in reversed(rows):
         print(f"[{row[0][:19]}] {row[1]}: {row[2]}")
 
+def get_recent_history(n=10):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT sender, message FROM chat_log ORDER BY id DESC LIMIT ?", (n,))
+    rows = c.fetchall()
+    conn.close()
+    # Format as a conversation string for LLM context
+    return "\n".join([f"{sender}: {msg}" for sender, msg in reversed(rows)])
+
 def vern_response(user_input):
-    # Direct Python tool invocation logic for MVP
+    # Direct tool invocation for explicit commands
     if user_input.startswith("echo "):
         text = user_input[5:]
         result = echo(text)
@@ -97,13 +107,16 @@ def vern_response(user_input):
         print_history()
         return ""
     else:
-        # Default: just echo for now
-        return f"VERN: I heard you say '{user_input}'. (Try 'echo', 'add', 'journal', 'schedule', 'finance', 'profile', 'last', or 'history')"
+        # Default: route to Orchestrator LLM agent for smart response
+        context = get_recent_history(10)
+        agent_status = "All agents online."
+        result = orchestrator_respond(user_input, context, agent_status)
+        return f"(orchestrator) {result}"
 
 def main():
     ensure_db()
     print("Welcome to VERN CLI Chat!")
-    print("Type your message. Try 'echo <text>', 'add <a> <b>', 'journal <entry>', 'schedule <details>', 'finance', 'profile <user_id>', 'last', or 'history'. Ctrl+C to exit.")
+    print("Type your message. Try natural language or commands like 'echo <text>', 'add <a> <b>', 'journal <entry>', 'schedule <details>', 'finance', 'profile <user_id>', 'last', or 'history'. Ctrl+C to exit.")
     while True:
         try:
             user_input = input("You: ").strip()

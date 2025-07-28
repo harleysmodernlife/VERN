@@ -9,6 +9,7 @@
 - Python 3.9+ installed
 - Git installed
 - Basic terminal/command line familiarity
+- **Hardware:** At least 4GB RAM (8GB+ recommended for Qwen3-0.6B); for slower hardware, use a smaller model (see below).
 
 ---
 
@@ -73,6 +74,8 @@
 - If Ollama is not found, ensure it’s in your PATH and the service is running.
 - For more models, see [Ollama Library](https://ollama.com/library).
 - For best performance on low-resource hardware, use quantized GGUF models or run Ollama in CPU mode (expect slower inference).
+- **If you see timeouts or backend errors in the CLI, try restarting Ollama, switching to a smaller model, or increasing the timeout in `src/mvp/qwen3_llm.py`.**
+- See [KNOWN_ISSUES_AND_GOTCHAS.md](KNOWN_ISSUES_AND_GOTCHAS.md) for more troubleshooting tips.
 
 ---
 
@@ -88,6 +91,7 @@
    ```
    python3 cli.py
    ```
+   - The CLI is now LLM-powered by default (Qwen3 via Ollama). Type natural language or explicit tool commands.
    - Try all options and see agent responses.
 
 ### Automated Testing
@@ -136,21 +140,21 @@ VERN includes a modular MCP server for tool discovery and invocation via the MCP
 - LLM backend/model selection is controlled via `config/agent_backends.yaml`.
 - Supported backends: `ollama-<model>`, `fake_llm`, `qwen3-0.6b` (transformers), and more.
 - Add new backends by writing a wrapper and updating `llm_router.py`.
-- See AGENT_GUIDES/README.md for details.
+- See [AGENT_GUIDES/README.md](AGENT_GUIDES/README.md) for details.
 
 ---
 
 ## 6. Accessibility & Internationalization
 
 - VERN aims to support keyboard navigation, screen readers, and multiple languages.
-- See GOALS_AND_MILESTONES.md for progress and plans.
+- See [GOALS_AND_MILESTONES.md](GOALS_AND_MILESTONES.md) for progress and plans.
 
 ---
 
 ## 7. Getting Help
 
-- See COMMUNITY.md for support channels.
-- Read CONTRIBUTING.md and SECURITY_AND_GIT_GUIDELINES.md before making changes.
+- See [COMMUNITY.md](COMMUNITY.md) for support channels.
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY_AND_GIT_GUIDELINES.md](SECURITY_AND_GIT_GUIDELINES.md) before making changes.
 
 ---
 

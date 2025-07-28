@@ -31,6 +31,10 @@ If you are a new agent (AI or human) or need to re-orient:
 2. Create or update the corresponding guide in `AGENT_GUIDES/`.
 3. Register new tools in `src/mvp/mcp_server.py` using `@mcp.tool()`.
 4. Update documentation and tests as needed.
+5. **To add LLM-powered reasoning to an agent:**
+   - Add a response function that calls the LLM (see `src/mvp/orchestrator.py` for an example).
+   - Pass recent chat history, agent status, and relevant context to the LLM.
+   - Document the agent’s prompt, context, and tool-calling logic in the cluster guide.
 
 ---
 
@@ -40,6 +44,10 @@ If you are a new agent (AI or human) or need to re-orient:
 - Use clear, descriptive language—assume the reader is new to the project.
 - Document any gotchas, caveats, or lessons learned in the relevant guide.
 - Reference [KNOWN_ISSUES_AND_GOTCHAS.md](../KNOWN_ISSUES_AND_GOTCHAS.md) for system-wide caveats.
+- **For LLM-powered agents:**  
+  - Document how context is passed and managed.
+  - Describe fallback/error handling for LLM failures.
+  - Note how tool-calling is triggered from LLM plans (if implemented).
 
 ---
 
