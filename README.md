@@ -55,6 +55,19 @@ You: what's the weather like in tokyo?
 
 ---
 
+## Modular LLM Provider/Model Selection
+
+- **Config-driven:**  
+  - LLM provider/model selection is now driven by `config/agent_backends.yaml`.
+  - The LLM router (`src/mvp/llm_router.py`) reads the config and routes agent calls to the selected backend/model.
+  - Future GUI will allow users to select providers/models interactively.
+- **How to change models/providers:**  
+  - Edit `config/agent_backends.yaml` to set the default backend/model.
+  - Supported: Ollama (local), OpenAI (cloud, planned), fake_llm (testing), and more.
+  - See QUICKSTART.md for details.
+
+---
+
 ## What’s Next
 
 - **Tool-calling:** Let agents call real tools (APIs, plugins, Python functions) for live data and actions.

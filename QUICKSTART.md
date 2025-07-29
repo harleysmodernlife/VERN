@@ -121,6 +121,16 @@
 
 ---
 
+## 5. Modular LLM Provider/Model Selection
+
+- **Config-driven:**  
+  - LLM provider/model selection is now driven by `config/agent_backends.yaml`.
+  - The LLM router (`src/mvp/llm_router.py`) reads the config and routes agent calls to the selected backend/model.
+  - To change models/providers, edit `config/agent_backends.yaml` and set the default backend/model.
+  - Supported: Ollama (local), OpenAI (cloud, planned), fake_llm (testing), and more.
+
+---
+
 ## MCP Server Integration (Tool API)
 
 VERN includes a modular MCP server for tool discovery and invocation via the MCP CLI and Inspector.
@@ -145,7 +155,9 @@ VERN includes a modular MCP server for tool discovery and invocation via the MCP
 - This dashboard lets you invoke MCP tools, enter parameters, and view results visually.
 - (Future: Live connection to MCP server for real-time workflows.)
 
-## 5. LLM Backend Modularity
+---
+
+## 6. LLM Backend Modularity
 
 - LLM backend/model selection is controlled via `config/agent_backends.yaml`.
 - Supported backends: `ollama-<model>`, `fake_llm`, `qwen3-0.6b` (transformers), and more.
@@ -154,14 +166,14 @@ VERN includes a modular MCP server for tool discovery and invocation via the MCP
 
 ---
 
-## 6. Accessibility & Internationalization
+## 7. Accessibility & Internationalization
 
 - VERN aims to support keyboard navigation, screen readers, and multiple languages.
 - See [GOALS_AND_MILESTONES.md](GOALS_AND_MILESTONES.md) for progress and plans.
 
 ---
 
-## 7. Getting Help
+## 8. Getting Help
 
 - See [COMMUNITY.md](COMMUNITY.md) for support channels.
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY_AND_GIT_GUIDELINES.md](SECURITY_AND_GIT_GUIDELINES.md) before making changes.

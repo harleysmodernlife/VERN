@@ -47,6 +47,19 @@ If you are a new agent (AI or human) or need to re-orient:
 
 ---
 
+## Modular LLM Provider/Model Selection
+
+- **Config-driven:**  
+  - LLM provider/model selection is now driven by `config/agent_backends.yaml`.
+  - The LLM router (`src/mvp/llm_router.py`) reads the config and routes agent calls to the selected backend/model.
+  - Future GUI will allow users to select providers/models interactively.
+- **How to change models/providers:**  
+  - Edit `config/agent_backends.yaml` to set the default backend/model.
+  - Supported: Ollama (local), OpenAI (cloud, planned), fake_llm (testing), and more.
+  - See QUICKSTART.md for details.
+
+---
+
 ## Best Practices
 
 - Keep guides and prompts up to date with code and workflow changes.
