@@ -1,23 +1,59 @@
 """
-VERN Research Agent (LLM-Powered)
----------------------------------
-Handles information retrieval, summarization, and research tasks using Qwen3.
+VERN Research Agent (Function-Based)
+------------------------------------
+Handles research, academic, and market queries for the MVP.
 """
 
-from src.mvp.qwen3_llm import call_qwen3
+from db.logger import log_action, log_message, log_gotcha
 
-def research_respond(user_input, context, agent_status=None):
+def research_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
-    Use Qwen3 to answer research/information requests, summarize, or suggest sources.
+    Handles research queries with persona/context adaptation, agent memory, and error handling.
     """
-    prompt = (
-        "You are the Research Agent in the VERN system. "
-        "Your job is to answer research questions, retrieve information, and summarize findings for the user. "
-        "Use your knowledge and the provided context to give clear, concise, and actionable answers. "
-        "If you cannot answer directly, suggest where to look or which agent to involve.\n\n"
-        f"Context: {context}\n"
-        f"Agent Status: {agent_status}\n"
-        f"User: {user_input}\n"
-        "Research Agent:"
-    )
-    return call_qwen3(prompt)
+    agent_id = "research"
+    try:
+        log_action(agent_id, user_id, "research_request", {
+            "user_input": user_input,
+            "context": context,
+            "agent_status": agent_status,
+            "persona": persona,
+            "memory": memory
+        }, status="started")
+
+        from mvp.llm_router import route_llm_call
+        persona_prompt = {
+            "default": "You are the VERN Research Agent. Conduct research, analyze sources, and provide a concise, actionable summary.",
+            "academic": "You are an academic researcher. Provide deep, well-cited answers and suggest further reading.",
+            "market": "You are a market analyst. Summarize trends, risks, and opportunities.",
+            "summarizer": "You are a summarizer. Boil down complex information into clear, digestible points.",
+            "advisor": "You are an advisor. Recommend actions and connect the user to relevant agents or plugins."
+        }
+        prompt = (
+            persona_prompt.get(persona, persona_prompt["default"]) + "\n"
+            f"Query: {user_input}\n"
+            f"Context: {context}\n"
+            f"Agent Status: {agent_status}\n"
+            f"Persona: {persona}\n"
+            f"Memory: {memory}\n"
+        )
+        response = route_llm_call(prompt, context=context, agent_status=agent_status)
+        log_action(agent_id, user_id, "llm_response", {
+            "prompt": prompt,
+            "response": str(response),
+            "persona": persona,
+            "memory": memory
+        })
+        if hasattr(response, "__iter__") and not isinstance(response, str):
+            response = "".join(list(response))
+        return response
+
+    except Exception as e:
+        log_message(agent_id, f"Error in research_respond: {str(e)}", level="error", context={
+            "user_input": user_input,
+            "context": context,
+            "agent_status": agent_status,
+            "persona": persona,
+            "memory": memory
+        })
+        log_gotcha(agent_id, f"Exception in research_respond: {str(e)}", severity="error")
+        return f"Error: {str(e)}"

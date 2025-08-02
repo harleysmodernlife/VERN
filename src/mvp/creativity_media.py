@@ -1,23 +1,59 @@
 """
-VERN Creativity/Media Agent (LLM-Powered)
------------------------------------------
-Handles content creation, media management, and creative tasks using Qwen3.
+VERN Creativity & Media Agent (Function-Based)
+----------------------------------------------
+Handles writing, media, and creative projects for the MVP.
 """
 
-from src.mvp.qwen3_llm import call_qwen3
+from db.logger import log_action, log_message, log_gotcha
 
-def creativity_respond(user_input, context, agent_status=None):
+def creativity_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
-    Use Qwen3 to answer creativity/media questions, generate content, and manage media.
+    Handles creativity/media queries with persona/context adaptation, agent memory, and error handling.
     """
-    prompt = (
-        "You are the Creativity/Media Agent in the VERN system. "
-        "Your job is to help the user with content creation, media management, and creative tasks. "
-        "Use your knowledge and the provided context to give imaginative, practical, and actionable advice. "
-        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
-        f"Context: {context}\n"
-        f"Agent Status: {agent_status}\n"
-        f"User: {user_input}\n"
-        "Creativity Agent:"
-    )
-    return call_qwen3(prompt)
+    agent_id = "creativity"
+    try:
+        log_action(agent_id, user_id, "creativity_request", {
+            "user_input": user_input,
+            "context": context,
+            "agent_status": agent_status,
+            "persona": persona,
+            "memory": memory
+        }, status="started")
+
+        from mvp.llm_router import route_llm_call
+        persona_prompt = {
+            "default": "You are the VERN Creativity & Media Agent. Generate creative ideas, write content, and support media projects.",
+            "writer": "You are a professional writer. Craft compelling stories, articles, or scripts.",
+            "artist": "You are a creative artist. Brainstorm visual concepts and media projects.",
+            "editor": "You are an editor. Polish, critique, and improve creative work.",
+            "advisor": "You are a creativity advisor. Recommend actions and connect the user to relevant agents or plugins."
+        }
+        prompt = (
+            persona_prompt.get(persona, persona_prompt["default"]) + "\n"
+            f"Query: {user_input}\n"
+            f"Context: {context}\n"
+            f"Agent Status: {agent_status}\n"
+            f"Persona: {persona}\n"
+            f"Memory: {memory}\n"
+        )
+        response = route_llm_call(prompt, context=context, agent_status=agent_status)
+        log_action(agent_id, user_id, "llm_response", {
+            "prompt": prompt,
+            "response": str(response),
+            "persona": persona,
+            "memory": memory
+        })
+        if hasattr(response, "__iter__") and not isinstance(response, str):
+            response = "".join(list(response))
+        return response
+
+    except Exception as e:
+        log_message(agent_id, f"Error in creativity_respond: {str(e)}", level="error", context={
+            "user_input": user_input,
+            "context": context,
+            "agent_status": agent_status,
+            "persona": persona,
+            "memory": memory
+        })
+        log_gotcha(agent_id, f"Exception in creativity_respond: {str(e)}", severity="error")
+        return f"Error: {str(e)}"

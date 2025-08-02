@@ -2,6 +2,28 @@
 
 ---
 
+## Beast Mode Protocol Update (2025-07-30)
+
+- **LLM-Driven Archetype Analysis:**  
+  - For single user entries, one agent and a single LLM call output all 13 archetype resonance scores (base 14 vector) at once.
+  - Full archetype cluster workflows are reserved for deep context or multi-turn analysis.
+  - All context, vectors, and decisions are logged for auditability.
+  - Archetype resonance can be mapped to standard indexes (Big Five, MBTI) for explainability and benchmarking.
+  - HuggingFace emotion/trait models are deprecated for everyday use; retained only for strict benchmarking.
+
+- **Recursive Implementation:**  
+  - All code, docs, and context are kept in sync.
+  - Work is recursive, deep, and autonomous—no shortcuts, no unnecessary dependencies.
+  - Always read and preserve doc files before editing; never overwrite blindly.
+  - Always call tools and test work; debug, patch, and refactor until all goals are met.
+  - Update TASKS_AND_TODO.md and CHANGELOG.md after each confirmed change.
+
+- **Auditability:**  
+  - Every agent decision, context, and vector is logged and reconstructable.
+  - System is explainable and can benchmark against standard psychological models.
+
+---
+
 ## Multi-Agent Orchestration (2025-07)
 
 - **LLM-only knowledge:**  

@@ -2,6 +2,10 @@
 
 # Core
 requests
+python-dotenv
+google-api-python-client
+google-auth
+chromadb
 anyio
 httpx
 
@@ -10,3 +14,5 @@ mcp
 
 # LLM and agent backends
 # (add more as needed)
+transformers>=4.40.0
+torch>=2.0.0

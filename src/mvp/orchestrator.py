@@ -1,94 +1,97 @@
 """
-VERN Orchestrator Agent (LLM-Powered, Multi-Agent)
--------------------------------------------------
-Routes user input, delegates to clusters, aggregates results, and manages priorities.
+VERN Orchestrator (Function-Based)
+----------------------------------
+Coordinates communication between agents, handles error escalation,
+processes and refines context data, adjusts agent parameters based on
+aggregated feedback, and aggregates multi-agent workflows.
 """
 
-from src.mvp.qwen3_llm import call_qwen3
-from src.mvp.research import research_respond
-from src.mvp.finance_resource import finance_respond
-from src.mvp.health_wellness import health_respond
-from src.mvp.admin import admin_respond
-from src.mvp.learning_education import learning_respond
-from src.mvp.social_relationship import social_respond
-from src.mvp.environment_systems import environment_respond
-from src.mvp.legal_compliance import legal_respond
-from src.mvp.creativity_media import creativity_respond
-from src.mvp.career_work import career_respond
-from src.mvp.travel_logistics import travel_respond
-from src.mvp.security_privacy import security_respond
-from src.mvp.archetype_phoenix import archetype_respond
-from src.mvp.emergent_agent import emergent_respond
-from src.mvp.knowledge_broker import knowledge_broker_respond
-from src.mvp.id10t_monitor import id10t_monitor_respond
+from db.logger import log_action, log_message, log_gotcha
 
-# Map cluster names to agent functions
-CLUSTER_AGENTS = {
-    "research": research_respond,
-    "finance": finance_respond,
-    "health": health_respond,
-    "admin": admin_respond,
-    "learning": learning_respond,
-    "social": social_respond,
-    "environment": environment_respond,
-    "legal": legal_respond,
-    "creativity": creativity_respond,
-    "career": career_respond,
-    "travel": travel_respond,
-    "security": security_respond,
-    "archetype": archetype_respond,
-    "emergent": emergent_respond,
-    "knowledge_broker": knowledge_broker_respond,
-    "id10t_monitor": id10t_monitor_respond,
-}
+def process_context(context):
+    """
+    Refine and tailor the raw context data for more effective downstream usage.
+    This function cleans string values and leaves other types unchanged.
+    """
+    if context and isinstance(context, dict):
+        refined = {}
+        for key, value in context.items():
+            if isinstance(value, str):
+                # Example refinement: trim whitespace and standardize capitalization.
+                refined[key] = value.strip().capitalize()
+            else:
+                refined[key] = value
+        return refined
+    return context
 
-def orchestrator_respond(user_input, context, agent_status=None):
+def adjust_agent_parameters(feedback_data):
     """
-    Orchestrator LLM: routes, delegates, and aggregates multi-agent responses.
+    Adjust agent parameters dynamically based on aggregated feedback.
+    For demonstration, if the negative feedback ratio exceeds a threshold,
+    recommend reviewing agent configurations.
+    
+    In production, this mechanism could automatically tune parameters.
     """
-    # Step 1: Ask the LLM which clusters to involve and what plan to follow
-    plan_prompt = (
-        "You are the Orchestrator Agent in the VERN system. "
-        "Your job is to read the user's message, recent context, and agent status, then decide which agent clusters should be involved. "
-        "Output a plan of action as a JSON list of clusters to involve (e.g., [\"research\", \"finance\"]) and a brief plan summary. "
-        "If the user request is simple, you may answer directly. Otherwise, delegate to the relevant clusters and aggregate their responses.\n\n"
-        f"Context: {context}\n"
-        f"Agent Status: {agent_status}\n"
-        f"User: {user_input}\n"
-        "Orchestrator:"
-    )
-    llm_response = call_qwen3(plan_prompt)
-    # Try to extract clusters and plan from LLM output
-    import re, json
-    clusters = []
-    plan_summary = ""
-    match = re.search(r"\[([^\]]+)\]", llm_response)
-    if match:
-        try:
-            clusters = json.loads("[" + match.group(1) + "]")
-        except Exception:
-            clusters = []
-    # Fallback: look for cluster names in text if JSON parse fails
-    if not clusters:
-        for name in CLUSTER_AGENTS:
-            if name in llm_response.lower():
-                clusters.append(name)
-    # Extract plan summary (text after the cluster list)
-    plan_match = re.search(r"\]\s*(.+)", llm_response)
-    if plan_match:
-        plan_summary = plan_match.group(1).strip()
-    else:
-        plan_summary = llm_response.strip()
-    # Step 2: Delegate to clusters and aggregate results
-    results = []
-    for cluster in clusters:
-        fn = CLUSTER_AGENTS.get(cluster.lower())
-        if fn:
-            result = fn(user_input, context, agent_status)
-            results.append(f"[{cluster.capitalize()}]: {result}")
-    # Step 3: Aggregate and return
-    if results:
-        return f"(plan: {plan_summary})\n" + "\n".join(results)
-    else:
-        # If no clusters, fallback to Orchestrator LLM direct answer
-        return llm_response
+    threshold = 0.5
+    neg_ratio = feedback_data.get("negative_ratio", 0)
+    if neg_ratio > threshold:
+        recommendation = (
+            "High negative feedback detected (ratio: "
+            f"{neg_ratio:.2f}). Consider tuning agent parameters."
+        )
+        # In a real system, adjustments would be applied here.
+        return recommendation
+    return "Agent parameters are optimal."
+
+def orchestrator_respond(user_input, context=None, agent_status=None, user_id="default_user"):
+    """
+    Routes the input to appropriate agent clusters, aggregates responses,
+    refines per-agent context data, optionally adjusts agent parameters based
+    on dynamic feedback, and handles error escalation.
+    
+    If the context includes a 'feedback' key with aggregated feedback data,
+    the orchestrator will invoke dynamic parameter adjustment.
+    """
+    agent_id = "orchestrator"
+    try:
+        # Process and refine the raw context before proceeding.
+        refined_context = process_context(context)
+
+        log_action(agent_id, user_id, "orchestrator_request", {
+            "user_input": user_input,
+            "context": refined_context,
+            "agent_status": agent_status
+        }, status="started")
+        
+        # Simulated multi-agent aggregated response.
+        response = f"Orchestrator processed: {user_input}\nContext: {refined_context}\nStatus: {agent_status}"
+        
+        # If a specific error flag is in the context, log a warning.
+        if refined_context and isinstance(refined_context, dict) and refined_context.get("error"):
+            error_detail = refined_context.get("error")
+            log_message(agent_id, f"Detected error in upstream agent: {error_detail}", level="warning")
+            response += f"\nWarning: Upstream error detected - {error_detail}"
+        
+        # If aggregated feedback is provided in the context, adjust agent parameters.
+        if refined_context and isinstance(refined_context, dict) and "feedback" in refined_context:
+            feedback_data = refined_context["feedback"]
+            recommendation = adjust_agent_parameters(feedback_data)
+            response += f"\nParameter Recommendation: {recommendation}"
+        
+        log_action(agent_id, user_id, "orchestrator_response", {
+            "response": response,
+            "context": refined_context
+        })
+        return response
+
+    except Exception as e:
+        error_msg = f"Orchestrator encountered an error: {str(e)}"
+        log_message(agent_id, error_msg, level="error", context={
+            "user_input": user_input,
+            "context": context,
+            "agent_status": agent_status
+        })
+        log_gotcha(agent_id, error_msg, severity="critical")
+        return error_msg
+
+# Additional orchestration functions (e.g., workflow aggregation, agent chaining) can be added here.

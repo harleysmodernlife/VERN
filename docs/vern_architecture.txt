@@ -1,0 +1,144 @@
+VERN Architecture Diagram
+
+A real architecture diagram is now available as SVG.  
+To update or view visually, import the SVG below into draw.io, Lucidchart, or Excalidraw.
+
+File: docs/vern_architecture.svg
+
+---
+To update:
+1. Copy the SVG code block below.
+2. Paste into your diagram tool (draw.io, Lucidchart, Excalidraw).
+3. Export as PNG/SVG and replace docs/vern_architecture.svg as needed.
+
+```svg
+<svg width="900" height="700" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="860" height="660" fill="#f9f9f9" stroke="#bbb" stroke-width="2"/>
+  <rect x="60" y="40" width="120" height="40" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="120" y="65" font-size="16" text-anchor="middle" fill="#1976d2">User (CLI/GUI/Dashboard)</text>
+  <rect x="60" y="110" width="200" height="60" fill="#fffde7" stroke="#fbc02d" stroke-width="2"/>
+  <text x="160" y="145" font-size="16" text-anchor="middle" fill="#fbc02d">Frontend (Next.js)</text>
+  <rect x="60" y="200" width="200" height="60" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="160" y="235" font-size="16" text-anchor="middle" fill="#388e3c">Backend API (FastAPI)</text>
+  <rect x="60" y="290" width="200" height="60" fill="#f3e5f5" stroke="#8e24aa" stroke-width="2"/>
+  <text x="160" y="325" font-size="16" text-anchor="middle" fill="#8e24aa">Orchestrator Agent</text>
+  <rect x="320" y="290" width="540" height="60" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+  <text x="590" y="315" font-size="14" text-anchor="middle" fill="#0288d1">
+    [Archetype] [DevTeam] [Admin] [Research] [Finance] [Health] [Learning] [Social] [Security] [Env] [Legal] [Creativity] [Career] [Travel]
+  </text>
+  <rect x="60" y="380" width="800" height="60" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+  <text x="460" y="415" font-size="16" text-anchor="middle" fill="#f57c00">
+    Plugins/Tools (MCP Server: weather, calendar, fileops, chromadb, ...)
+  </text>
+  <rect x="60" y="470" width="800" height="40" fill="#ede7f6" stroke="#5e35b1" stroke-width="2"/>
+  <text x="460" y="495" font-size="14" text-anchor="middle" fill="#5e35b1">
+    Databases: SQLite (structured), ChromaDB (semantic/RAG)
+  </text>
+  <rect x="60" y="530" width="800" height="40" fill="#fce4ec" stroke="#d81b60" stroke-width="2"/>
+  <text x="460" y="555" font-size="14" text-anchor="middle" fill="#d81b60">
+    Logs, Context, User Profiles
+  </text>
+  <rect x="60" y="590" width="800" height="40" fill="#e0f2f1" stroke="#00897b" stroke-width="2"/>
+  <text x="460" y="615" font-size="14" text-anchor="middle" fill="#00897b">
+    Emergent Agent, Knowledge Broker, id10t Monitor (cross-cutting, audit, optimization)
+  </text>
+</svg>
+```
+
+---
+
+# VERN Workflow Diagrams
+
+Below are SVG diagrams for key workflows.  
+To edit visually, copy each SVG into draw.io, Lucidchart, or Excalidraw.
+
+---
+
+## Agent Orchestration Workflow
+
+```svg
+<svg width="900" height="220" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="860" height="180" fill="#f9fbe7" stroke="#afb42b" stroke-width="2"/>
+  <text x="450" y="45" font-size="18" text-anchor="middle" fill="#afb42b">Agent Orchestration Workflow</text>
+  <rect x="60" y="80" width="140" height="40" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="130" y="105" font-size="14" text-anchor="middle" fill="#1976d2">User Request</text>
+  <rect x="220" y="80" width="140" height="40" fill="#fffde7" stroke="#fbc02d" stroke-width="2"/>
+  <text x="290" y="105" font-size="14" text-anchor="middle" fill="#fbc02d">Frontend</text>
+  <rect x="380" y="80" width="140" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="450" y="105" font-size="14" text-anchor="middle" fill="#388e3c">Backend API</text>
+  <rect x="540" y="80" width="140" height="40" fill="#f3e5f5" stroke="#8e24aa" stroke-width="2"/>
+  <text x="610" y="105" font-size="14" text-anchor="middle" fill="#8e24aa">Orchestrator</text>
+  <rect x="700" y="80" width="160" height="40" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+  <text x="780" y="105" font-size="14" text-anchor="middle" fill="#0288d1">Agents/Plugins</text>
+  <polyline points="200,100 220,100" stroke="#888" stroke-width="2" fill="none"/>
+  <polyline points="360,100 380,100" stroke="#888" stroke-width="2" fill="none"/>
+  <polyline points="520,100 540,100" stroke="#888" stroke-width="2" fill="none"/>
+  <polyline points="680,100 700,100" stroke="#888" stroke-width="2" fill="none"/>
+</svg>
+```
+
+---
+
+## Plugin/Tool-Calling Workflow
+
+```svg
+<svg width="900" height="180" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="860" height="140" fill="#fff3e0" stroke="#f57c00" stroke-width="2"/>
+  <text x="450" y="45" font-size="18" text-anchor="middle" fill="#f57c00">Plugin/Tool-Calling Workflow</text>
+  <rect x="60" y="80" width="180" height="40" fill="#f3e5f5" stroke="#8e24aa" stroke-width="2"/>
+  <text x="150" y="105" font-size="14" text-anchor="middle" fill="#8e24aa">Orchestrator/Agent</text>
+  <rect x="260" y="80" width="180" height="40" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+  <text x="350" y="105" font-size="14" text-anchor="middle" fill="#0288d1">Plugin Registry</text>
+  <rect x="460" y="80" width="180" height="40" fill="#fffde7" stroke="#fbc02d" stroke-width="2"/>
+  <text x="550" y="105" font-size="14" text-anchor="middle" fill="#fbc02d">Plugin/Tool</text>
+  <rect x="660" y="80" width="180" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="750" y="105" font-size="14" text-anchor="middle" fill="#388e3c">External API/Resource</text>
+  <polyline points="240,100 260,100" stroke="#888" stroke-width="2" fill="none"/>
+  <polyline points="440,100 460,100" stroke="#888" stroke-width="2" fill="none"/>
+  <polyline points="640,100 660,100" stroke="#888" stroke-width="2" fill="none"/>
+</svg>
+```
+
+---
+
+## Onboarding Workflow
+
+```svg
+<svg width="900" height="180" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="860" height="140" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+  <text x="450" y="45" font-size="18" text-anchor="middle" fill="#0288d1">Onboarding Workflow</text>
+  <rect x="60" y="80" width="180" height="40" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="150" y="105" font-size="14" text-anchor="middle" fill="#1976d2">User</text>
+  <rect x="260" y="80" width="180" height="40" fill="#fffde7" stroke="#fbc02d" stroke-width="2"/>
+  <text x="350" y="105" font-size="14" text-anchor="middle" fill="#fbc02d">Onboarding Panel</text>
+  <rect x="460" y="80" width="180" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="550" y="105" font-size="14" text-anchor="middle" fill="#388e3c">Backend API</text>
+  <rect x="660" y="80" width="180" height="40" fill="#f3e5f5" stroke="#8e24aa" stroke-width="2"/>
+  <text x="750" y="105" font-size="14" text-anchor="middle" fill="#8e24aa">Profile/Checklist</text>
+  <polyline points="240,100 260,100" stroke="#888" stroke-width="2" fill="none"/>
+  <polyline points="440,100 460,100" stroke="#888" stroke-width="2" fill="none"/>
+  <polyline points="640,100 660,100" stroke="#888" stroke-width="2" fill="none"/>
+</svg>
+```
+
+---
+
+## Persona Tuning Workflow
+
+```svg
+<svg width="900" height="180" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="860" height="140" fill="#fce4ec" stroke="#d81b60" stroke-width="2"/>
+  <text x="450" y="45" font-size="18" text-anchor="middle" fill="#d81b60">Persona Tuning Workflow</text>
+  <rect x="60" y="80" width="180" height="40" fill="#f3e5f5" stroke="#8e24aa" stroke-width="2"/>
+  <text x="150" y="105" font-size="14" text-anchor="middle" fill="#8e24aa">User/Guide</text>
+  <rect x="260" y="80" width="180" height="40" fill="#fffde7" stroke="#fbc02d" stroke-width="2"/>
+  <text x="350" y="105" font-size="14" text-anchor="middle" fill="#fbc02d">Persona Panel</text>
+  <rect x="460" y="80" width="180" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="550" y="105" font-size="14" text-anchor="middle" fill="#388e3c">Backend API</text>
+  <rect x="660" y="80" width="180" height="40" fill="#e1f5e9" stroke="#43a047" stroke-width="2"/>
+  <text x="750" y="105" font-size="14" text-anchor="middle" fill="#43a047">Persona/Context</text>
+  <polyline points="240,100 260,100" stroke="#888" stroke-width="2" fill="none"/>
+  <polyline points="440,100 460,100" stroke="#888" stroke-width="2" fill="none"/>
+  <polyline points="640,100 660,100" stroke="#888" stroke-width="2" fill="none"/>
+</svg>
+```

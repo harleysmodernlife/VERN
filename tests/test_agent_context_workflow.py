@@ -10,9 +10,9 @@ import os
 sys.path.insert(0, "./src/mvp")
 sys.path.insert(0, "./src/db")
 
-from dev_team import DevTeam
-from knowledge_broker import KnowledgeBroker
-from admin import Admin
+from mvp.dev_team_agent import DevTeam
+from mvp.knowledge_broker import KnowledgeBroker
+from mvp.admin import Admin
 
 def test_cross_agent_context_workflow():
     dev = DevTeam()

@@ -18,9 +18,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from mcp.server.fastmcp import FastMCP
 
 # Import agent clusters for tool integration
-from src.mvp.admin import Admin
-from src.mvp.health_wellness import HealthWellness
-from src.mvp.finance_resource import FinanceResource
+from mvp.admin import Admin
+from mvp.health_wellness import health_respond
+from mvp.finance_resource import finance_respond
 
 import sqlite3
 import json
@@ -150,20 +150,19 @@ def schedule_event(details: str, user_id: int = None) -> str:
 @mcp.tool()
 def journal_entry(entry: str, user_id: int = None) -> str:
     """
-    Add a health/wellness journal entry via the HealthWellness agent and log to DB.
+    Add a health/wellness journal entry via the health_respond function and log to DB.
     Args:
         entry: Journal text or prompt.
         user_id: Optional user ID for logging.
     Returns:
-        Confirmation or result from the HealthWellness agent.
+        Confirmation or result from the Health/Wellness agent.
     """
-    hw = HealthWellness()
-    result = hw.handle_request(f"journal: {entry}", user_id=user_id)
+    # Use health_respond directly (no HealthWellness class)
+    result = health_respond(f"journal: {entry}", context="", user_id=user_id)
     # Log journal entry to actions table for persistence
     try:
         from src.db.logger import log_action
-        hw_agent_id = getattr(hw, "agent_id", 8)
-        log_action(hw_agent_id, user_id, "journal_entry", {"entry": entry}, status="success")
+        log_action("health_wellness", user_id, "journal_entry", {"entry": entry}, status="success")
     except Exception as e:
         result += f" [Warning: failed to log journal entry: {e}]"
     return result
@@ -204,6 +203,222 @@ def finance_balance(user_id: int = None) -> str:
     """
     fr = FinanceResource()
     return fr.handle_request("balance", user_id=user_id)
+
+# --- MCP Plugin Tools ---
+
+@mcp.tool()
+def chromadb_query(query: str, top_k: int = 3) -> str:
+    """
+    Query ChromaDB for relevant documents/knowledge.
+    Args:
+        query: Query string.
+        top_k: Number of top results to return.
+    Returns:
+        String with top matching documents or error.
+    """
+    import os
+    from dotenv import load_dotenv
+    import chromadb
+
+    load_dotenv()
+    db_path = os.getenv("CHROMA_DB_PATH", "./chroma_data/")
+    try:
+        client = chromadb.PersistentClient(path=db_path)
+        collection = client.get_or_create_collection("vern_docs")
+        results = collection.query(query_texts=[query], n_results=top_k)
+        docs = results.get("documents", [[]])[0]
+        if not docs:
+            return "No relevant documents found."
+        return "\n\n".join(docs)
+    except Exception as e:
+        return f"ChromaDB error: {e}"
+
+
+@mcp.tool()
+def get_weather(location: str) -> str:
+    """
+    Provides real weather information for a given location using OpenWeatherMap API.
+    Args:
+        location: Name of the city or region.
+    Returns:
+        Weather description string or error message.
+    """
+    import os
+    import requests
+    from dotenv import load_dotenv
+
+    # Load .env if present
+    load_dotenv()
+
+    api_key = os.getenv("OPENWEATHERMAP_API_KEY")
+    if not api_key:
+        return "Weather API key not set. Please set OPENWEATHERMAP_API_KEY in your .env file."
+
+    try:
+        # Step 1: Geocode city name to lat/lon
+        geo_url = "https://api.openweathermap.org/geo/1.0/direct"
+        geo_params = {"q": location, "limit": 1, "appid": api_key}
+        geo_resp = requests.get(geo_url, params=geo_params, timeout=10)
+        geo_resp.raise_for_status()
+        geo_data = geo_resp.json()
+        if not geo_data or "lat" not in geo_data[0] or "lon" not in geo_data[0]:
+            return f"Could not find coordinates for '{location}'."
+        lat = geo_data[0]["lat"]
+        lon = geo_data[0]["lon"]
+
+        # Step 2: Fetch weather data
+        weather_url = "https://api.openweathermap.org/data/2.5/weather"
+        weather_params = {
+            "lat": lat,
+            "lon": lon,
+            "appid": api_key,
+            "units": "metric"
+        }
+        weather_resp = requests.get(weather_url, params=weather_params, timeout=10)
+        weather_resp.raise_for_status()
+        weather = weather_resp.json()
+
+        # Step 3: Format output
+        desc = weather["weather"][0]["description"].capitalize() if weather.get("weather") else "N/A"
+        temp = weather["main"]["temp"] if "main" in weather and "temp" in weather["main"] else "N/A"
+        humidity = weather["main"]["humidity"] if "main" in weather and "humidity" in weather["main"] else "N/A"
+        wind = weather["wind"]["speed"] if "wind" in weather and "speed" in weather["wind"] else "N/A"
+        city = weather.get("name", location)
+        country = weather.get("sys", {}).get("country", "")
+
+        return (
+            f"Weather for {city}, {country}:\n"
+            f"- {desc}\n"
+            f"- Temperature: {temp}°C\n"
+            f"- Humidity: {humidity}%\n"
+            f"- Wind speed: {wind} m/s"
+        )
+    except requests.exceptions.RequestException as e:
+        return f"Weather API error: {e}"
+    except Exception as e:
+        return f"Unexpected error: {e}"
+
+@mcp.tool()
+def add_event(title: str, date: str) -> str:
+    """
+    Adds an event to the Google Calendar.
+    Args:
+        title: Title of the event.
+        date: Date of the event (YYYY-MM-DD).
+    Returns:
+        Confirmation message or error.
+    """
+    import os
+    from dotenv import load_dotenv
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
+
+    load_dotenv()
+    calendar_id = os.getenv("GOOGLE_CALENDAR_ID")
+    creds_path = os.getenv("GOOGLE_CALENDAR_CREDENTIALS_JSON", "google_calendar_service_account.json")
+
+    if not calendar_id or not os.path.exists(creds_path):
+        return "Google Calendar config missing. Set GOOGLE_CALENDAR_ID and provide service account JSON."
+
+    try:
+        creds = service_account.Credentials.from_service_account_file(
+            creds_path,
+            scopes=["https://www.googleapis.com/auth/calendar"]
+        )
+        service = build("calendar", "v3", credentials=creds)
+        event = {
+            "summary": title,
+            "start": {"date": date},
+            "end": {"date": date},
+        }
+        created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
+        return f"Event '{title}' added for {date}. Google Event ID: {created_event.get('id')}"
+    except Exception as e:
+        return f"Google Calendar API error: {e}"
+
+@mcp.tool()
+def list_events() -> str:
+    """
+    Lists upcoming events from the Google Calendar.
+    Returns:
+        String listing all events or error.
+    """
+    import os
+    from dotenv import load_dotenv
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
+    from datetime import datetime, timezone
+
+    load_dotenv()
+    calendar_id = os.getenv("GOOGLE_CALENDAR_ID")
+    creds_path = os.getenv("GOOGLE_CALENDAR_CREDENTIALS_JSON", "google_calendar_service_account.json")
+
+    if not calendar_id or not os.path.exists(creds_path):
+        return "Google Calendar config missing. Set GOOGLE_CALENDAR_ID and provide service account JSON."
+
+    try:
+        creds = service_account.Credentials.from_service_account_file(
+            creds_path,
+            scopes=["https://www.googleapis.com/auth/calendar.readonly"]
+        )
+        service = build("calendar", "v3", credentials=creds)
+        now = datetime.now(timezone.utc).isoformat()
+        events_result = service.events().list(
+            calendarId=calendar_id, timeMin=now, maxResults=10, singleEvents=True, orderBy="startTime"
+        ).execute()
+        events = events_result.get("items", [])
+        if not events:
+            return "No upcoming events found."
+        return "\n".join([f"{e['start'].get('date', e['start'].get('dateTime'))}: {e['summary']}" for e in events])
+    except Exception as e:
+        return f"Google Calendar API error: {e}"
+
+@mcp.tool()
+def fileops_list_files(directory: str = ".") -> list:
+    """
+    Securely lists files in a directory under the project root.
+    Args:
+        directory: Directory path (relative to project root).
+    Returns:
+        List of filenames or error.
+    """
+    import os
+    from pathlib import Path
+
+    BASE_DIR = Path(os.getcwd()).resolve()
+    try:
+        target_dir = (BASE_DIR / directory).resolve()
+        if not str(target_dir).startswith(str(BASE_DIR)):
+            return [f"Access denied: directory traversal outside project root."]
+        if not target_dir.is_dir():
+            return [f"Not a directory: {target_dir}"]
+        return [f.name for f in target_dir.iterdir()]
+    except Exception as e:
+        return [f"Error listing files: {e}"]
+
+@mcp.tool()
+def fileops_read_file(path: str) -> str:
+    """
+    Securely reads the contents of a file under the project root.
+    Args:
+        path: Path to the file (relative to project root).
+    Returns:
+        File contents as a string or error.
+    """
+    import os
+    from pathlib import Path
+
+    BASE_DIR = Path(os.getcwd()).resolve()
+    try:
+        target_file = (BASE_DIR / path).resolve()
+        if not str(target_file).startswith(str(BASE_DIR)):
+            return "Access denied: file traversal outside project root."
+        if not target_file.is_file():
+            return f"Not a file: {target_file}"
+        with open(target_file, "r") as f:
+            return f.read()
+    except Exception as e:
+        return f"Error reading file: {e}"
 
 # For direct execution (optional)
 if __name__ == "__main__":

@@ -1,189 +1,292 @@
 # VERN Quickstart Guide
 
+## Diagram/Image Workflow for Docs
+
+To add diagrams or visuals in VERN documentation (for non-image editors):
+
+```text
++-------------------+      +-------------------+
+|   Frontend (GUI)  |<---->|   Backend (API)   |
++-------------------+      +-------------------+
+         |                        |
+         v                        v
+   [User Actions]           [Agent Logic]
+```
+
+*Diagram: High-level VERN architecture showing the frontend and backend interaction, with user actions routed to agent logic.*
+
+- Write diagrams in Markdown code blocks using ASCII/text.
+- Add a clear, concise text description below each diagram.
+- Optionally add `<!-- TODO: Convert to SVG/PNG for docs -->` for future contributors.
+- When ready, convert ASCII diagrams to SVG/PNG using tools like Excalidraw, Mermaid, draw.io, or AI image generators.
+- Replace or supplement the code block with the image, keeping the text description for accessibility.
+
+This workflow ensures visuals are accessible, editable, and convertible for production docs.
+
 **Read first, then amend docs—never assume state. Never truncate with “remains unchanged”—always show full, updated context.**
+
+---
+
+## Beast Mode Doc Protocol
+
+> **VERN Beast Mode Doc Protocol**
+>
+> 1. **Recursive, Context-Driven:** Always read and preserve all relevant docs before editing. Never overwrite blindly.
+> 2. **Sync Code, Docs, and Context:** Update all docs, task lists, and changelogs after every confirmed change.
+> 3. **Onboarding First:** Ensure docs enable new users, whether coders or not, to get started safely.
+> 4. **Transparency & Auditability:** Log every change, decision, and lesson in CHANGELOG.md and TASKS_AND_TODO.md.
+> 5. **No Stale or Misleading Docs:** Clearly mark deprecated features and planned updates.
+> 6. **Architecture & Workflows:** Include diagrams, sample workflows, and real-world use cases.
+> 7. **Testing & CI/CD:** Document all tests, coverage, and CI/CD setups; each change comes with tests and doc updates.
+> 8. **Security & Privacy:** Never commit secrets; use `.env.example` and reference SECURITY_AND_GIT_GUIDELINES.md.
+> 9. **Accessibility & Internationalization:** Maintain checklists for both.
+> 10. **Extension & Marketplace:** Document how to add agents, plugins, and UI panels.
+> 11. **Continuous Review:** Regularly update docs after each sprint.
+> 12. **Human-AI Partnership:** Ensure all docs support ethical, transparent, and accessible human-AI collaboration.
 
 ---
 
 ## 1. Prerequisites
 
 - Python 3.9+ installed
+- Node.js 18+ and npm (for frontend)
 - Git installed
-- Basic terminal/command line familiarity
-- **Hardware:** At least 4GB RAM (8GB+ recommended for Qwen3-0.6B); for slower hardware, use a smaller model (see below).
+- Basic terminal/command line skills
+- **Hardware:** At least 4GB RAM (8GB+ recommended for larger models)
 
 ---
 
-## 2. Setup
+## 2. Setup (Backend & Frontend)
 
-1. **Clone the repository:**
-   ```
-   git clone https://github.com/yourusername/vern.git
-   cd vern
-   ```
+### A. Clone the repository
 
-2. **Create and activate a virtual environment:**
-   ```
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
+```bash
+git clone https://github.com/harleysmodernlife/VERN.git
+cd VERN
+```
 
-3. **Install dependencies:**
-   ```
-   pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
+### B. Backend Setup (FastAPI)
 
-4. **Initialize the database:**
-   ```
-   python3 src/db/init_db.py
-   ```
-   - This will create `db/vern.db` using the schema in `src/db/schema.sql`.
-   - Inspect or manage the DB with the `sqlite3` CLI or a GUI tool.
+```bash
+cd vern_backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+- API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### C. Frontend Setup (Next.js)
+
+Open a new terminal:
+
+```bash
+cd vern_frontend
+npm install
+npm run dev
+```
+- App: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 3. Local LLM Setup (Ollama)
+## 3. Onboarding Checklist (Non-Coder Friendly)
+
+- [ ] Clone the repository and install prerequisites.
+- [ ] Start the backend (FastAPI) and frontend (Next.js).
+- [ ] Open [http://localhost:3000](http://localhost:3000) in your browser.
+- [ ] Explore dashboard panels including chat, plugin registry, user profile, onboarding, etc.
+- [ ] Read [SECURITY_AND_GIT_GUIDELINES.md](SECURITY_AND_GIT_GUIDELINES.md) before handling any config or code.
+- [ ] If contributing, review [CONTRIBUTING.md](CONTRIBUTING.md).
+- [ ] If stuck, consult [COMMUNITY.md](COMMUNITY.md) or ask for help.
+
+---
+
+## 4. Local LLM Setup (Ollama)
 
 ### A. Install Ollama
 
-1. **Install Ollama (Linux/macOS):**
-   ```
-   curl -fsSL https://ollama.com/install.sh | sh
-   ```
-   - See [Ollama docs](https://ollama.com/) for Windows or advanced options.
-
-2. **Start the Ollama service (if not already running):**
-   ```
-   ollama serve
-   ```
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+- Check [Ollama docs](https://ollama.com/) for Windows or advanced options.
 
 ### B. Download and Run a Model
 
-1. **Pull the Qwen3-0.6B model:**
-   ```
-   ollama pull qwen3:0.6b
-   ```
-2. **Test the model:**
-   ```
-   ollama run qwen3:0.6b
-   ```
+```bash
+ollama pull qwen3:0.6b
+ollama run qwen3:0.6b
+```
 
 ### C. Troubleshooting
 
-- **RAM Requirements:** Qwen3-0.6B requires at least 4GB RAM (more recommended). If you run out of RAM, try a smaller model (e.g., `phi`, `tinyllama`).
-- If Ollama is not found, ensure it’s in your PATH and the service is running.
-- For more models, see [Ollama Library](https://ollama.com/library).
-- For best performance on low-resource hardware, use quantized GGUF models or run Ollama in CPU mode (expect slower inference).
-- **If you see timeouts or backend errors in the CLI, try restarting Ollama, switching to a smaller model, or increasing the timeout in `src/mvp/qwen3_llm.py`.**
-- If you get a "ModuleNotFoundError: No module named 'src'" error, run the CLI as a module:  
-  ```
-  python3 -m src.mvp.cli
-  ```
+- Ensure Ollama is in your PATH.
+- For alternative models, visit: [Ollama Library](https://ollama.com/library).
+- For low-resource systems, use quantized models or CPU mode (expect slower inference).
 - See [KNOWN_ISSUES_AND_GOTCHAS.md](KNOWN_ISSUES_AND_GOTCHAS.md) for more troubleshooting tips.
 
 ---
 
-## 4. Running the MVP
+## 5. Running the MVP
 
-### Manual Testing
-
-1. **Run the CLI from the project root:**
-   ```
-   python3 -m src.mvp.cli
-   ```
-   - The CLI is now LLM-powered by default (Qwen3 via Ollama). Type natural language or explicit tool commands.
-   - Try all options and see agent responses.
-
-2. **What to Expect:**
-   - Multi-agent orchestration: Orchestrator delegates to clusters and aggregates their responses.
-   - Sample output:
-     ```
-     You: what's the weather like in tokyo?
-     (orchestrator) (plan: Involve research and finance clusters to answer the question.)
-     [Research]: The weather in Tokyo varies depending on time of year. In spring, it's often sunny, while in autumn, it can be cloudy. Humidity is high in Tokyo, so you might expect a warm and humid climate.
-     [Finance]: I'm unable to provide specific weather information as the context doesn't include any weather-related details. If you have questions about budgeting, resource allocation, or other finance-related topics, feel free to ask!
-     ```
-
-### Automated Testing
-
-1. From the project root, run:
-   ```
-   python3 tests/test_mvp.py
-   python3 tests/test_db_logging.py
-   python3 tests/test_agents_extended.py
-   python3 tests/test_agents_horizontal.py
-   python3 tests/test_cross_cluster_handoff.py
-   python3 tests/test_llm_integration.py
-   python3 tests/test_agent_context_workflow.py
-   python3 tests/test_llm_backend_swap.py
-   ```
-   - Confirms all agent, LLM, and workflow logic.
+- **CLI:** `python -m mvp.cli` (from project root)
+- **GUI:** `streamlit run src/mvp/gui.py` (minimal prototype)
+- **Frontend:** [http://localhost:3000](http://localhost:3000) (Next.js dashboard)
+- **Backend:** [http://localhost:8000/docs](http://localhost:8000/docs) (FastAPI API docs)
+- **Feedback:** Submit user feedback via the integrated Feedback Panel.
 
 ---
 
-## 5. Modular LLM Provider/Model Selection
+## 6. API Usage & Sample Workflows
 
-- **Config-driven:**  
-  - LLM provider/model selection is now driven by `config/agent_backends.yaml`.
-  - The LLM router (`src/mvp/llm_router.py`) reads the config and routes agent calls to the selected backend/model.
-  - To change models/providers, edit `config/agent_backends.yaml` and set the default backend/model.
-  - Supported: Ollama (local), OpenAI (cloud, planned), fake_llm (testing), and more.
+- **Backend API docs:** [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger/OpenAPI)
+- **Full API Reference:** See [README.md](README.md#api-reference) for OpenAPI YAML and examples.
+
+### Quick API Examples
+
+#### List all agent clusters
+
+```bash
+curl -X GET http://localhost:8000/agents
+```
+
+#### Send a message to an agent (with persona, context, and memory)
+
+```bash
+curl -X POST http://localhost:8000/agents/devteam/respond \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is our current project status?", "persona": "architect", "context": {"project": "VERN"}, "memory": "previous interactions"}'
+```
+
+#### List all available plugins/tools
+
+```bash
+curl -X GET http://localhost:8000/plugins
+```
+
+#### Call a plugin/tool
+
+```bash
+curl -X POST http://localhost:8000/plugins/weather_plugin/call \
+  -H "Content-Type: application/json" \
+  -d '{"params": {"location": "Chicago"}}'
+```
+
+#### Submit a plugin to the marketplace
+
+```bash
+curl -X POST http://localhost:8000/plugins/submit \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my_plugin", "description": "Does something cool", "code": "def run(): ...", "author": "yourname"}'
+```
+
+#### View workflow logs
+
+```bash
+curl -X GET http://localhost:8000/agents/workflows/logs
+```
+
+#### Authentication Example
+
+```bash
+curl -H "Authorization: Bearer <your_token>" http://localhost:8000/secure-status
+```
 
 ---
 
-## MCP Server Integration (Tool API)
+## 7. Testing
 
-VERN includes a modular MCP server for tool discovery and invocation via the MCP CLI and Inspector.
-
-- **Location:** `src/mvp/mcp_server.py`
-- **How to run:**  
-  1. Create and activate a venv:  
-     `python3 -m venv .venv && source .venv/bin/activate`
-  2. Install MCP CLI:  
-     `pip install "mcp[cli]"`
-  3. Start the server:  
-     `mcp dev src/mvp/mcp_server.py`
-- **How to extend:**  
-  Add a new `@mcp.tool()` function in `src/mvp/mcp_server.py`.  
-  See the README "MCP Server Integration" section for details.
+- **Backend:**  
+  ```bash
+  cd vern_backend
+  pytest
+  ```
+- **Frontend:**  
+  Run `npm test` in the vern_frontend directory.
+- **API:**  
+  Visit [http://localhost:8000/docs](http://localhost:8000/docs) to test endpoints.
 
 ---
 
-## Cockpit/Dashboard UI (Prototype)
+## 8. Modular LLM Provider/Model Selection
 
-- See `vern_dashboard.html` in the project root for a minimal web UI prototype.
-- This dashboard lets you invoke MCP tools, enter parameters, and view results visually.
-- (Future: Live connection to MCP server for real-time workflows.)
+- Configure the default model in `config/agent_backends.yaml`.
+- Supported: Ollama (local), OpenAI (cloud, planned), fake_llm (testing), etc.
 
 ---
 
-## 6. LLM Backend Modularity
+## 9. Plugin API & Tool-Calling
 
-- LLM backend/model selection is controlled via `config/agent_backends.yaml`.
-- Supported backends: `ollama-<model>`, `fake_llm`, `qwen3-0.6b` (transformers), and more.
-- Add new backends by writing a wrapper and updating `llm_router.py`.
+- Add Python functions with the `@mcp.tool()` decorator in `src/mvp/mcp_server.py`.
+- Tools are auto-discovered in the GUI.
 - See [AGENT_GUIDES/README.md](AGENT_GUIDES/README.md) for details.
 
 ---
 
-## 7. Accessibility & Internationalization
+## 10. Accessibility & Internationalization
 
-- VERN aims to support keyboard navigation, screen readers, and multiple languages.
-- See [GOALS_AND_MILESTONES.md](GOALS_AND_MILESTONES.md) for progress and plans.
-
----
-
-## 8. Getting Help
-
-- See [COMMUNITY.md](COMMUNITY.md) for support channels.
-- Read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY_AND_GIT_GUIDELINES.md](SECURITY_AND_GIT_GUIDELINES.md) before making changes.
+- VERN supports keyboard navigation and screen readers.
+- See [GOALS_AND_MILESTONES.md](GOALS_AND_MILESTONES.md) for current progress and plans.
 
 ---
 
-**Welcome to VERN! Your feedback and contributions are valued.**
+## 11. Getting Help
+
+- Refer to [COMMUNITY.md](COMMUNITY.md) for support details.
+- For contributions, consult [CONTRIBUTING.md](CONTRIBUTING.md).
+- Review [SECURITY_AND_GIT_GUIDELINES.md](SECURITY_AND_GIT_GUIDELINES.md) before modifying code or config.
 
 ---
 
-## Learn More
+## Additional Features & Current State
 
-- See [FUTURE_VISION_AND_ROADMAP.md](FUTURE_VISION_AND_ROADMAP.md) for VERN’s long-term goals, modular design, and future direction.
+- **Turbocharged Agent Clusters:**  
+  All agents support persona tuning via both UI and API. Agent memory and context are handled via the backend; our visual workflow editor now allows per-step context input (basic implementation, refined processing coming soon).
+
+- **Workflow Editor Enhancements:**  
+  Use the Workflow Editor to build multi-agent workflows. Each step now has fields for agent name, persona, and optional context.
+
+- **Feedback System:**  
+  Submit feedback directly through the dashboard using the integrated Feedback Panel. This helps improve the system over time.
+
+- **User Onboarding & Guided Tours:**  
+  Interactive panels guide you through the dashboard and its features, ensuring a smooth learning curve.
+
+- **Robust Security & Logging:**  
+  The system employs JWT/OAuth2 for secure API access and extensive logging for transparency.
+
+---
+
+## Troubleshooting & FAQ
+
+- **Startup Issues:**  
+  Ensure Python (3.9+), Node.js (18+), and virtualenv are set up correctly.
+- **API Errors:**  
+  Check the backend logs and confirm uvicorn is running.
+- **LLM Response Issues:**  
+  Make sure Ollama is running and models are properly configured.
+- **Plugin Issues:**  
+  Refresh the Plugin Registry panel if a plugin is not visible.
+- **Database Access:**  
+  Verify that SQLite/ChromaDB is not locked.
+
+**Debugging Tips:**
+- Use `pytest` for backend and `npm test` for frontend issues.
+- Utilize browser developer tools for UI debugging.
+- Review logs via endpoints such as `/logs` or `/status`.
+
+---
+
+## Additional Resources
+
+- [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
+- [QUICKSTART.md](QUICKSTART.md)
+- [AGENT_GUIDES/README.md](AGENT_GUIDES/README.md)
+- [TASKS_AND_TODO.md](TASKS_AND_TODO.md)
+- [CHANGELOG.md](CHANGELOG.md)
+- [SECURITY_AND_GIT_GUIDELINES.md](SECURITY_AND_GIT_GUIDELINES.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [FUTURE_VISION_AND_ROADMAP.md](FUTURE_VISION_AND_ROADMAP.md)
+
+---
+
+**VERN is dedicated to fostering a collaborative, transparent, and intelligent human-AI partnership. Always review the documentation to ensure clarity and consistency.**

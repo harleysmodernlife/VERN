@@ -1,23 +1,59 @@
 """
-VERN Social/Relationship Agent (LLM-Powered)
---------------------------------------------
-Handles communication, event planning, and social questions using Qwen3.
+VERN Social & Relationship Agent (Function-Based)
+-------------------------------------------------
+Handles relationship advice, communication, and networking for the MVP.
 """
 
-from src.mvp.qwen3_llm import call_qwen3
+from db.logger import log_action, log_message, log_gotcha
 
-def social_respond(user_input, context, agent_status=None):
+def social_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
-    Use Qwen3 to answer social/relationship questions, plan events, and help with communication.
+    Handles social/relationship queries with persona/context adaptation, agent memory, and error handling.
     """
-    prompt = (
-        "You are the Social/Relationship Agent in the VERN system. "
-        "Your job is to help the user with communication, event planning, and social/relationship questions. "
-        "Use your knowledge and the provided context to give empathetic, practical, and actionable advice. "
-        "If you cannot answer directly, suggest which agent or tool to involve.\n\n"
-        f"Context: {context}\n"
-        f"Agent Status: {agent_status}\n"
-        f"User: {user_input}\n"
-        "Social Agent:"
-    )
-    return call_qwen3(prompt)
+    agent_id = "social"
+    try:
+        log_action(agent_id, user_id, "social_request", {
+            "user_input": user_input,
+            "context": context,
+            "agent_status": agent_status,
+            "persona": persona,
+            "memory": memory
+        }, status="started")
+
+        from mvp.llm_router import route_llm_call
+        persona_prompt = {
+            "default": "You are the VERN Social & Relationship Agent. Advise on communication, networking, and relationship building.",
+            "coach": "You are a social coach. Motivate, guide, and support the user toward healthy relationships.",
+            "mentor": "You are a relationship mentor. Teach best practices and guide the user step-by-step.",
+            "analyst": "You are a social analyst. Summarize trends, risks, and opportunities.",
+            "advisor": "You are a social advisor. Recommend actions and connect the user to relevant agents or plugins."
+        }
+        prompt = (
+            persona_prompt.get(persona, persona_prompt["default"]) + "\n"
+            f"Query: {user_input}\n"
+            f"Context: {context}\n"
+            f"Agent Status: {agent_status}\n"
+            f"Persona: {persona}\n"
+            f"Memory: {memory}\n"
+        )
+        response = route_llm_call(prompt, context=context, agent_status=agent_status)
+        log_action(agent_id, user_id, "llm_response", {
+            "prompt": prompt,
+            "response": str(response),
+            "persona": persona,
+            "memory": memory
+        })
+        if hasattr(response, "__iter__") and not isinstance(response, str):
+            response = "".join(list(response))
+        return response
+
+    except Exception as e:
+        log_message(agent_id, f"Error in social_respond: {str(e)}", level="error", context={
+            "user_input": user_input,
+            "context": context,
+            "agent_status": agent_status,
+            "persona": persona,
+            "memory": memory
+        })
+        log_gotcha(agent_id, f"Exception in social_respond: {str(e)}", severity="error")
+        return f"Error: {str(e)}"

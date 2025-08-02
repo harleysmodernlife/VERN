@@ -26,6 +26,38 @@ Empower humans and AI to collaborate, learn, and thrive—together—by building
 
 ---
 
+## Accessibility & Internationalization Checklist
+
+- [x] Keyboard navigation for all dashboard panels and forms
+- [x] ARIA labels and roles for all interactive elements
+- [x] Sufficient color contrast and font scaling options
+- [x] Screen reader support for major workflows
+- [ ] Language selector and translation support (in progress)
+    - [ ] Add a language selector dropdown to the dashboard UI (see `vern_frontend/components/Dashboard.js`)
+    - [ ] Integrate [React Intl](https://formatjs.io/docs/react-intl/) for i18n in all frontend components
+    - [ ] Provide at least one additional language (e.g., Spanish) for all UI strings
+    - [ ] Store user language preference in local storage or user profile
+    - [ ] Document translation workflow in `README.md` and `vern_frontend/README.md`
+- [ ] Alt text for all images and icons
+    - [ ] Add descriptive `alt` attributes to all `<img>` and icon components in the frontend
+    - [ ] Audit all SVGs and dashboard panels for missing alt text
+    - [ ] Test with screen readers for coverage
+- [ ] Accessible onboarding wizard and checklist
+    - [ ] Ensure all onboarding steps are keyboard navigable and have ARIA roles/labels
+    - [ ] Add screen reader instructions to onboarding UI
+    - [ ] Provide alt text for all onboarding illustrations/icons
+- [ ] Mobile and responsive design for all UIs
+- [ ] Documentation available in multiple languages (planned)
+    - [ ] Translate `README.md`, `QUICKSTART.md`, and onboarding docs to at least one additional language
+    - [ ] Add language toggle to docs site if applicable
+- [ ] Accessibility testing in CI/CD pipeline (planned)
+    - [ ] Add automated accessibility checks (e.g., axe-core, pa11y) to GitHub Actions workflows
+    - [ ] Document accessibility test results in PRs
+- [ ] User feedback channel for accessibility issues
+    - [ ] Add accessibility feedback form or email to dashboard and docs
+
+---
+
 ## Milestones
 
 ### MVP

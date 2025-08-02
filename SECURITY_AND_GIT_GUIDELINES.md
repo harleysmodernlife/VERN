@@ -1,5 +1,17 @@
 # VERN Security and GitHub Guidelines
 
+## CI/CD, Security, and Accessibility Checklist
+
+- [ ] All secrets and API keys are stored in `.env.example` and never committed.
+- [ ] CI/CD pipeline runs automated tests on every PR and push.
+- [ ] Security audit is performed before every major release.
+- [ ] Accessibility checklist is reviewed for every new UI feature.
+- [ ] Internationalization support is tracked and updated in GOALS_AND_MILESTONES.md.
+- [ ] All contributors review onboarding docs before pushing changes.
+- [ ] Troubleshooting and FAQ sections are present in all major docs.
+- [ ] All docs are cross-linked for context-driven onboarding.
+- [ ] CHANGELOG.md and TASKS_AND_TODO.md are updated after every confirmed change.
+
 **Read first, then amend docs—never assume state. Never truncate with “remains unchanged”—always show full, updated context. Keep this file up to date after each confirmed change. Work as a team. Watch for gotchas and snags. Your work will be tested—be mindful of each task. Evaluate your work with a critical eye for errors.**
 
 ---

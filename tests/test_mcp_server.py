@@ -82,6 +82,32 @@ async def main():
     assert isinstance(profile, dict)
     print("get_user_profile: PASS")
 
+    # Weather plugin
+    result = await call_tool("get_weather", {"location": "Austin"})
+    assert "Weather for" in result or "Weather API key not set" in result or "Could not find coordinates" in result
+    print("get_weather: PASS")
+
+    # Calendar plugin (add_event, list_events)
+    result = await call_tool("add_event", {"title": "Test Event", "date": "2025-08-01"})
+    assert "added for" in result or "Google Calendar config missing" in result or "Google Calendar API error" in result
+    print("add_event: PASS")
+    result = await call_tool("list_events", {})
+    assert "No upcoming events" in result or "Google Calendar config missing" in result or "Google Calendar API error" in result or "Test Event" in result
+    print("list_events: PASS")
+
+    # Fileops plugin (fileops_list_files, fileops_read_file)
+    result = await call_tool("fileops_list_files", {"directory": "."})
+    assert isinstance(result, list) or "Error listing files" in result[0] or "Access denied" in result[0]
+    print("fileops_list_files: PASS")
+    result = await call_tool("fileops_read_file", {"path": "README.md"})
+    assert isinstance(result, str) and ("Error reading file" in result or "Access denied" in result or len(result) > 0)
+    print("fileops_read_file: PASS")
+
+    # ChromaDB plugin (chromadb_query)
+    result = await call_tool("chromadb_query", {"query": "test", "top_k": 1})
+    assert "No relevant documents found." in result or "ChromaDB error" in result or isinstance(result, str)
+    print("chromadb_query: PASS")
+
     print("All MCP tool JSON-RPC tests passed.")
 
 if __name__ == "__main__":

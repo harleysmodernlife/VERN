@@ -1,80 +1,70 @@
 # Contributing to VERN
 
-Welcome! VERN thrives on teamwork, transparency, and critical thinking. This guide ensures every contributor—human or AI—helps build a robust, ethical, and future-proof system.
-
-**New contributors:**  
-Start with [QUICKSTART.md](QUICKSTART.md) for setup, and see [FUTURE_VISION_AND_ROADMAP.md](FUTURE_VISION_AND_ROADMAP.md) for the project’s long-term direction.
+Thank you for your interest in contributing to VERN! Our goal is to build a modular, transparent, and user-friendly AI ecosystem where collaboration between humans and AI is at the forefront. Please take a few moments to review our guidelines below.
 
 ---
 
-## Core Principles (Read First!)
+## Overview
 
-- **Read first, then amend docs—never assume state.**
-- **Never truncate with “remains unchanged”—always show full, updated context.**
-- **Keep project/task/todo lists up to date after each confirmed change.**
-- **Work as a team—communicate, document, and cross-check.**
-- **Watch for gotchas, snags, and edge cases.**
-- **Your work will be tested—be mindful and thorough.**
-- **Evaluate your work critically for errors and improvement.**
+VERN is an open, modular agent ecosystem that supports:
+- **Persona Tuning:** Each agent can adjust its response style (e.g., coach, architect, mentor) to cater to user needs.
+- **Context & Memory:** Agents utilize contextual data and past interactions (via API/back-end). Our visual Workflow Editor now lets each step include optional context inputs, although detailed per-step processing will be refined in future sprints.
+- **Multi-Agent Workflows:** Users can chain commands across agents to achieve complex tasks, orchestrated by our central orchestrator.
+- **Feedback & Iteration:** We have integrated a feedback system so users can report issues directly through the dashboard, helping us continuously improve the system.
 
----
-
-## How to Contribute
-
-1. **Fork the repo and clone locally.**
-2. **Read all relevant docs before making changes.**
-3. **Review [SECURITY_AND_GIT_GUIDELINES.md](SECURITY_AND_GIT_GUIDELINES.md) before handling any code, config, or API keys.**
-4. **Open an issue or discussion for major changes or new features.**
-5. **Follow code standards and naming conventions.**
-6. **Update documentation and task lists after each confirmed change.**
-7. **Test your work—automated and manual tests are required.**
-8. **Submit a pull request with a clear description and checklist.**
-9. **Be open to feedback and ready to iterate.**
+Recent sprint updates have focused on:
+- Enhancing the **Workflow Editor** (per-step context input added).
+- Implementing a basic **Feedback System** (backend endpoint and frontend panel integrated).
+- Refining the **Orchestrator** for robust error handling and multi-agent routing.
+- Updating our documentation (README, QUICKSTART, TASKS_AND_TODO, etc.) to accurately reflect these changes and our future roadmap.
 
 ---
 
-## Communication & Teamwork
+## Guidelines for Contributions
 
-- Use clear, respectful language in all discussions.
-- Document decisions, rationale, and lessons learned.
-- Cross-check your work with teammates and AI agents.
-- Raise concerns about ethics, alignment, or system safety immediately.
+1. **Read the Documentation:**  
+   - Ensure you are familiar with our [README.md](README.md), [QUICKSTART.md](QUICKSTART.md), and [TASKS_AND_TODO.md](TASKS_AND_TODO.md). They provide an overview of the system architecture, setup instructions, and our current priorities.
+   - Please review the [SECURITY_AND_GIT_GUIDELINES.md](SECURITY_AND_GIT_GUIDELINES.md) for best practices regarding sensitive information and version control.
 
----
+2. **Environment Setup:**  
+   - Follow the instructions in the Quickstart Guide to set up the backend (FastAPI) and frontend (Next.js) environments.
+   - Run tests using `pytest` for backend and `npm test` for frontend as described in our documentation.
 
-## Code & Documentation Standards
+3. **Code Style and Testing:**  
+   - Ensure your code adheres to the existing style conventions.
+   - Write tests for new features or bug fixes.
+   - Include detailed commit messages that reference related issues or tasks.
 
-- Modular, readable, and well-commented code.
-- Consistent formatting (auto-formatters recommended).
-- Docs must be updated with every change—no exceptions.
-- Use checklists and status updates in issues and PRs.
+4. **Feature Development and Bug Fixes:**  
+   - For new features (e.g., further improvements to per-step context processing, enhanced error alerts, and feedback loop enhancements), please reference TASKS_AND_TODO.md to align with our sprint priorities.
+   - If you introduce changes, update all relevant documentation. Our docs should always accurately reflect the current state of the code.
 
----
+5. **Pull Requests:**  
+   - When ready, submit a pull request for review.
+   - Be sure to document your changes within the PR description and update our CHANGELOG.md if necessary.
 
-## Testing & Quality Assurance
-
-- All new features and fixes must include tests.
-- Manual testing for edge cases and user flows.
-- Log errors, unexpected behavior, and lessons learned.
-
----
-
-## Values & Alignment
-
-- Prioritize survival, well-being, and empowerment of both humans and AI.
-- Strive for transparency, explainability, and ethical alignment.
-- Foster accessibility, inclusivity, and continuous improvement.
+6. **Collaboration and Communication:**  
+   - Engage with the community via our [COMMUNITY.md](COMMUNITY.md) channels if you have questions or need clarifications.
+   - Your contributions and suggestions are key to making VERN better. Feel free to propose improvements or report issues.
 
 ---
 
-## Doc Discipline & Cross-Referencing
+## Roadmap and Future Vision
 
-- **Never shortcut documentation.** Always read both the main cluster guide and its PROMPTS.md before acting.
-- **Follow all cross-links.** If a file links to another doc, you must read and follow both.
-- **Update all relevant docs and cross-links** when making changes. Log updates in CHANGELOG.md.
-- **Pull requests must confirm** that all relevant docs and cross-links are up to date.
-- **AI and human contributors:** Skipping or ignoring linked docs is considered a critical error.
+Our recent sprint has "turbocharged" VERN by integrating:
+- A visual Workflow Editor with per-step context inputs.
+- A basic Feedback System for user-driven improvements.
+- Enhanced orchestration for multi-agent communication and error handling.
+
+Next priorities include:
+- Fully refining per-step context processing so that agents receive precise, tailored context.
+- Implementing real-time error alerts on the frontend.
+- Expanding our dynamic feedback loop to auto-adjust agent behavior.
+- Enhancing security measures and performance optimizations.
+- Improving interactive onboarding with multimedia support.
+
+For more details, see our [FUTURE_VISION_AND_ROADMAP.md](FUTURE_VISION_AND_ROADMAP.md).
 
 ---
 
-Thank you for helping build VERN—a system for the future, by and for everyone.
+Thank you for contributing to VERN and helping us shape the future of human-AI collaboration!

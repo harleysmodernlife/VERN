@@ -3,8 +3,25 @@
 # Format for Ollama: "ollama-<model>"
 # Example: "ollama-qwen3:0.6b", "ollama-phi", "fake_llm", "qwen3-0.6b" (transformers)
 
-dev_team: ollama-qwen3:0.6b
-knowledge_broker: ollama-qwen3:0.6b
-research: ollama-qwen3:0.6b
-admin: none
-# Add more agents as needed...
+default: ollama-qwen3:0.6b
+
+backends:
+  ollama-qwen3:0.6b:
+    provider: ollama
+    model: qwen3:0.6b
+  ollama-phi:
+    provider: ollama
+    model: phi
+  # Removed fake_llm for production robustness
+  openai-gpt-4:
+    provider: openai
+    model: gpt-4
+  # Add more models/providers as needed...
+
+# Per-agent backend selection (optional, for future advanced workflows)
+agents:
+  dev_team: ollama-qwen3:0.6b
+  knowledge_broker: ollama-qwen3:0.6b
+  research: ollama-qwen3:0.6b
+  admin: ollama-qwen3:0.6b
+  # Add more agents as needed...
