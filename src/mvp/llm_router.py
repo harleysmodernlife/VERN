@@ -26,9 +26,11 @@ def get_llm_backend(agent_name=None):
         return None, None
     return backend.get('provider', 'ollama'), backend.get('model', 'qwen3:0.6b')
 
-def route_llm_call(prompt, **kwargs):
+import asyncio
+
+async def route_llm_call_async(prompt, **kwargs):
     """
-    Routes the prompt to the selected LLM backend/model.
+    Async version: Routes the prompt to the selected LLM backend/model.
     Returns a string or a generator (for streaming).
     Includes robust error handling.
     """
@@ -36,24 +38,42 @@ def route_llm_call(prompt, **kwargs):
     try:
         if provider == 'ollama':
             from mvp.ollama_llm import call_ollama
-            response = call_ollama(prompt, model=model, **kwargs)
-            # If streaming, ensure at least one token is yielded
+            if asyncio.iscoroutinefunction(call_ollama):
+                response = await call_ollama(prompt, model=model, **kwargs)
+            else:
+                loop = asyncio.get_event_loop()
+                response = await loop.run_in_executor(None, call_ollama, prompt, model, **kwargs)
             if hasattr(response, "__iter__") and not isinstance(response, str):
                 yielded = False
                 for token in response:
                     yielded = True
                     yield token
                 if not yielded:
-                    yield "[Ollama error: No response received]"
+                    yield {"error": "No response received from Ollama backend", "code": "OLLAMA_NO_RESPONSE"}
             else:
-                return response
+                yield response
+                yield response
         elif provider == 'openai':
-            return "[OpenAI backend not implemented yet]"
-        # Removed fake_llm support for production robustness
+            yield {"error": "OpenAI backend not implemented yet", "code": "OPENAI_NOT_IMPLEMENTED"}
         else:
             if kwargs.get("stream", False):
-                yield "No backend configured"
+                yield {"error": "No backend configured", "code": "NO_BACKEND_CONFIGURED"}
             else:
-                return "No backend configured"
+                yield {"error": "No backend configured", "code": "NO_BACKEND_CONFIGURED"}
     except Exception as e:
-        yield f"[LLM error: {e}]"
+        yield {"error": str(e), "code": "LLM_ERROR"}
+
+def route_llm_call(prompt, **kwargs):
+    """
+    Sync wrapper for backward compatibility.
+    """
+    coro = route_llm_call_async(prompt, **kwargs)
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If already in an event loop, run as coroutine
+            return coro
+        else:
+            return loop.run_until_complete(coro)
+    except Exception as e:
+        return {"error": str(e), "code": "LLM_ERROR"}

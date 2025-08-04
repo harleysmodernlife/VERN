@@ -6,7 +6,7 @@ processes and refines context data, adjusts agent parameters based on
 aggregated feedback, and aggregates multi-agent workflows.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def process_context(context):
     """
@@ -95,3 +95,63 @@ def orchestrator_respond(user_input, context=None, agent_status=None, user_id="d
         return error_msg
 
 # Additional orchestration functions (e.g., workflow aggregation, agent chaining) can be added here.
+
+# --- Workflow & Agent Chaining ---
+
+WORKFLOWS = {}
+
+def create_workflow(name, steps):
+    """
+    Create a new workflow.
+    Args:
+        name: Workflow name.
+        steps: List of agent call dicts, e.g. [{"agent": "research", "input": "..."}]
+    """
+    WORKFLOWS[name] = steps
+    return f"Workflow '{name}' created with {len(steps)} steps."
+
+def list_workflows():
+    """
+    List all available workflows.
+    Returns:
+        Dict of workflow names and steps.
+    """
+    return WORKFLOWS
+
+def run_workflow(name, initial_input=None, user_id="default_user"):
+    """
+    Execute a workflow by chaining agent calls.
+    Args:
+        name: Workflow name.
+        initial_input: Optional input for the first agent.
+        user_id: User ID for logging.
+    Returns:
+        Aggregated output from all agents.
+    """
+    steps = WORKFLOWS.get(name)
+    if not steps:
+        return f"Workflow '{name}' not found."
+    output = initial_input
+    results = []
+    for idx, step in enumerate(steps):
+        agent = step.get("agent")
+        agent_input = step.get("input", output)
+        # Example: route to agent function by name (stub/demo)
+        try:
+            if agent == "research":
+                from src.mvp.research import research_respond
+                result = research_respond(agent_input, user_id=user_id)
+            elif agent == "finance":
+                from src.mvp.finance_resource import finance_respond
+                result = finance_respond(agent_input, user_id=user_id)
+            elif agent == "health":
+                from src.mvp.health_wellness import health_respond
+                result = health_respond(agent_input, user_id=user_id)
+            else:
+                result = f"Agent '{agent}' not implemented."
+            output = result
+            results.append({ "step": idx+1, "agent": agent, "output": result })
+        except Exception as e:
+            results.append({ "step": idx+1, "agent": agent, "error": str(e) })
+            break
+    return results

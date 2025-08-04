@@ -4,7 +4,7 @@ VERN Emergent Agent (Function-Based)
 Handles adaptive, meta-agent tasks and complex workflows for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def emergent_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def emergent_respond(user_input, context=None, agent_status=None, persona="defau
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Emergent Agent. Adapt to complex tasks, optimize workflows, and coordinate agents.",
             "optimizer": "You are a workflow optimizer. Streamline processes and resolve bottlenecks.",

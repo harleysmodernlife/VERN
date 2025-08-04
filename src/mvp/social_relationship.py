@@ -4,7 +4,7 @@ VERN Social & Relationship Agent (Function-Based)
 Handles relationship advice, communication, and networking for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def social_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def social_respond(user_input, context=None, agent_status=None, persona="default
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Social & Relationship Agent. Advise on communication, networking, and relationship building.",
             "coach": "You are a social coach. Motivate, guide, and support the user toward healthy relationships.",

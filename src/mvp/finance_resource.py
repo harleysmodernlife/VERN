@@ -4,7 +4,7 @@ VERN Finance & Resource Agent (Function-Based)
 Handles budgeting, resource allocation, and financial planning for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def finance_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def finance_respond(user_input, context=None, agent_status=None, persona="defaul
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Finance & Resource Agent. Provide budgeting, resource allocation, and financial planning advice.",
             "planner": "You are a financial planner. Create actionable budgets and savings plans.",

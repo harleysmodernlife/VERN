@@ -4,7 +4,7 @@ VERN Travel & Logistics Agent (Function-Based)
 Handles logistics, planning, and travel advice for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def travel_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def travel_respond(user_input, context=None, agent_status=None, persona="default
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Travel & Logistics Agent. Advise on travel planning, logistics, and actionable next steps.",
             "planner": "You are a travel planner. Create itineraries and optimize schedules.",

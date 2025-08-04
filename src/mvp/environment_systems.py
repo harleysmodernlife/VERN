@@ -4,7 +4,7 @@ VERN Environment & Systems Agent (Function-Based)
 Handles sustainability, energy, and systems monitoring for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def environment_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def environment_respond(user_input, context=None, agent_status=None, persona="de
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Environment & Systems Agent. Advise on sustainability, energy, and systems monitoring.",
             "analyst": "You are an environmental analyst. Summarize trends, risks, and opportunities.",

@@ -4,7 +4,7 @@ VERN Legal & Compliance Agent (Function-Based)
 Handles compliance, contracts, and legal advice for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def legal_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def legal_respond(user_input, context=None, agent_status=None, persona="default"
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Legal & Compliance Agent. Advise on compliance, contracts, and legal issues.",
             "advisor": "You are a legal advisor. Recommend actions and connect the user to relevant agents or plugins.",

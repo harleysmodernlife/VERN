@@ -13,17 +13,45 @@ import os
 import json
 
 class ContextBuilder:
-    def __init__(self, user_request: str, user_id: int = None):
+    def __init__(self, user_request: str, user_id: int = None, config: dict = None):
+        """
+        ContextBuilder now supports config flags for fine-tuning context assembly.
+        config: {
+            "include_tools": bool,
+            "include_history": bool,
+            "include_permissions": bool,
+            "include_system_state": bool,
+            "custom_processors": dict (optional, for advanced overrides)
+        }
+        """
         self.user_request = user_request
         self.user_id = user_id
+        self.config = config or {
+            "include_tools": True,
+            "include_history": True,
+            "include_permissions": True,
+            "include_system_state": True,
+            "custom_processors": {}
+        }
         self.context = {
             "user_request": user_request,
-            "user_id": user_id,
-            "tools": self.get_available_tools(),
-            "history": self.get_history(),
-            "permissions": self.get_permissions(),
-            "system_state": self.get_system_state()
+            "user_id": user_id
         }
+        if self.config.get("include_tools", True):
+            self.context["tools"] = self._process("tools", self.get_available_tools())
+        if self.config.get("include_history", True):
+            self.context["history"] = self._process("history", self.get_history())
+        if self.config.get("include_permissions", True):
+            self.context["permissions"] = self._process("permissions", self.get_permissions())
+        if self.config.get("include_system_state", True):
+            self.context["system_state"] = self._process("system_state", self.get_system_state())
+
+    def _process(self, key, value):
+        # Use custom processor if provided, else return value as-is
+        processor = self.config.get("custom_processors", {}).get(key)
+        if processor:
+            return processor(value)
+        return value
 
     def get_available_tools(self):
         # Stub: Replace with MCP server tool registry query

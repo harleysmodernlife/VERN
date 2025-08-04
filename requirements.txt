@@ -8,11 +8,25 @@ google-auth
 chromadb
 anyio
 httpx
+pyyaml
+streamlit
+pillow
+psutil
+pytesseract
+txtai
 
 # MCP SDK (if used)
 mcp
 
-# LLM and agent backends
-# (add more as needed)
-transformers>=4.40.0
-torch>=2.0.0
+
+# Backend (FastAPI, DB, etc.)
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+databases
+websockets
+
+# Testing
+pytest
+pytest-asyncio

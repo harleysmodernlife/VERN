@@ -10,20 +10,21 @@ class KnowledgeBroker:
     """
     def lookup(self, query, context=None, agent_status=None, persona="default", memory=None):
         from mvp.llm_router import route_llm_call
-        persona_prompt = {
-            "default": "You are the VERN Knowledge Broker Agent. Search context, documents, and knowledge bases, and provide a concise, actionable answer.",
-            "researcher": "You are a research specialist. Provide deep, well-cited answers and suggest next steps.",
-            "summarizer": "You are a summarizer. Boil down complex information into clear, digestible points.",
-            "advisor": "You are an advisor. Recommend actions and connect the user to relevant agents or plugins.",
-            "cross_cluster": "You are a cross-cluster coordinator. Aggregate responses from multiple clusters and synthesize a unified answer."
+        from mvp.prompt_utils import build_prompt
+        persona_descriptions = {
+            "default": "Search context, documents, and knowledge bases, and provide a concise, actionable answer.",
+            "researcher": "Provide deep, well-cited answers and suggest next steps.",
+            "summarizer": "Boil down complex information into clear, digestible points.",
+            "advisor": "Recommend actions and connect the user to relevant agents or plugins.",
+            "cross_cluster": "Aggregate responses from multiple clusters and synthesize a unified answer."
         }
-        prompt = (
-            persona_prompt.get(persona, persona_prompt["default"]) + "\n"
-            f"Query: {query}\n"
-            f"Context: {context}\n"
-            f"Agent Status: {agent_status}\n"
-            f"Persona: {persona}\n"
-            f"Memory: {memory}\n"
+        context = context or {}
+        context["persona_description"] = persona_descriptions.get(persona, persona_descriptions["default"])
+        prompt = build_prompt(
+            agent_name="knowledge_broker",
+            task=query,
+            context=context,
+            persona=persona
         )
         return route_llm_call(prompt, context=context, agent_status=agent_status)
 
@@ -31,7 +32,7 @@ class KnowledgeBroker:
         # Alias for lookup, for test compatibility
         return self.lookup(query, context=context, agent_status=agent_status, persona=persona, memory=memory)
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def knowledge_broker_context_lookup(query, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -48,20 +49,23 @@ def knowledge_broker_context_lookup(query, context=None, agent_status=None, pers
         }, status="started")
 
         from mvp.llm_router import route_llm_call
-        persona_prompt = {
-            "default": "You are the VERN Knowledge Broker Agent. Search context, documents, and knowledge bases, and provide a concise, actionable answer.",
-            "researcher": "You are a research specialist. Provide deep, well-cited answers and suggest next steps.",
-            "summarizer": "You are a summarizer. Boil down complex information into clear, digestible points.",
-            "advisor": "You are an advisor. Recommend actions and connect the user to relevant agents or plugins.",
-            "cross_cluster": "You are a cross-cluster coordinator. Aggregate responses from multiple clusters and synthesize a unified answer."
+        from mvp.prompt_utils import build_prompt
+        from mvp.llm_router import route_llm_call
+        from mvp.prompt_utils import build_prompt
+        persona_descriptions = {
+            "default": "Search context, documents, and knowledge bases, and provide a concise, actionable answer.",
+            "researcher": "Provide deep, well-cited answers and suggest next steps.",
+            "summarizer": "Boil down complex information into clear, digestible points.",
+            "advisor": "Recommend actions and connect the user to relevant agents or plugins.",
+            "cross_cluster": "Aggregate responses from multiple clusters and synthesize a unified answer."
         }
-        prompt = (
-            persona_prompt.get(persona, persona_prompt["default"]) + "\n"
-            f"Query: {query}\n"
-            f"Context: {context}\n"
-            f"Agent Status: {agent_status}\n"
-            f"Persona: {persona}\n"
-            f"Memory: {memory}\n"
+        context = context or {}
+        context["persona_description"] = persona_descriptions.get(persona, persona_descriptions["default"])
+        prompt = build_prompt(
+            agent_name="knowledge_broker",
+            task=query,
+            context=context,
+            persona=persona
         )
         response = route_llm_call(prompt, context=context, agent_status=agent_status)
         log_action(agent_id, user_id, "llm_response", {
@@ -73,8 +77,8 @@ def knowledge_broker_context_lookup(query, context=None, agent_status=None, pers
         # If response is a generator, join its output
         if hasattr(response, "__iter__") and not isinstance(response, str):
             response = "".join(list(response))
-        # Patch: If backend is not configured, escalate to orchestrator for error handling
-        if "No backend configured" in response or "[Ollama error: No response received]" in response:
+        # Patch: If backend returns structured error, escalate to orchestrator for error handling
+        if isinstance(response, dict) and "error" in response:
             try:
                 from mvp.orchestrator import orchestrator_respond
                 error_context = {
@@ -83,10 +87,11 @@ def knowledge_broker_context_lookup(query, context=None, agent_status=None, pers
                     "agent_status": agent_status,
                     "persona": persona,
                     "memory": memory,
-                    "error": response
+                    "error": response.get("error"),
+                    "error_code": response.get("code")
                 }
                 return orchestrator_respond(
-                    f"Knowledge Broker Agent encountered a backend error: {response}. Please escalate or suggest next steps.",
+                    f"Knowledge Broker Agent encountered a backend error: {response.get('error')} (code: {response.get('code')}). Please escalate or suggest next steps.",
                     error_context,
                     agent_status,
                     user_id
@@ -131,16 +136,17 @@ def knowledge_broker_cross_cluster_query(req, context=None, agent_status=None, p
     Handles cross-cluster query requests with persona/context adaptation and agent memory.
     """
     from mvp.llm_router import route_llm_call
-    persona_prompt = {
-        "default": "You are the VERN Knowledge Broker Agent. Coordinate with relevant agent clusters, aggregate their responses, and provide a unified, actionable answer.",
-        "cross_cluster": "You are a cross-cluster coordinator. Aggregate responses from multiple clusters and synthesize a unified answer."
+    from mvp.prompt_utils import build_prompt
+    persona_descriptions = {
+        "default": "Coordinate with relevant agent clusters, aggregate their responses, and provide a unified, actionable answer.",
+        "cross_cluster": "Aggregate responses from multiple clusters and synthesize a unified answer."
     }
-    prompt = (
-        persona_prompt.get(persona, persona_prompt["default"]) + "\n"
-        f"Query: {req}\n"
-        f"Context: {context}\n"
-        f"Agent Status: {agent_status}\n"
-        f"Persona: {persona}\n"
-        f"Memory: {memory}\n"
+    context = context or {}
+    context["persona_description"] = persona_descriptions.get(persona, persona_descriptions["default"])
+    prompt = build_prompt(
+        agent_name="knowledge_broker",
+        task=req,
+        context=context,
+        persona=persona
     )
     return route_llm_call(prompt, context=context, agent_status=agent_status)

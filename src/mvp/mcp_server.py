@@ -13,14 +13,15 @@ Author: VERN Team
 
 import sys
 import os
+
+from src.mvp import finance_resource
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from mcp.server.fastmcp import FastMCP
 
 # Import agent clusters for tool integration
-from mvp.admin import Admin
-from mvp.health_wellness import health_respond
-from mvp.finance_resource import finance_respond
+from src.mvp.health_wellness import health_respond
+from src.mvp.finance_resource import finance_respond
 
 import sqlite3
 import json
@@ -28,9 +29,17 @@ import json
 # Global FastMCP server object for MCP CLI discovery
 mcp = FastMCP("vern-demo")
 
+import asyncio
+
 @mcp.tool()
 def echo(text: str) -> str:
     """Return the input string."""
+    return text
+
+@mcp.tool()
+async def echo_async(text: str) -> str:
+    """Async: Return the input string after a short delay."""
+    await asyncio.sleep(0.01)
     return text
 
 @mcp.tool()
@@ -144,7 +153,7 @@ def schedule_event(details: str, user_id: int = None) -> str:
     Returns:
         Confirmation message from the Admin agent.
     """
-    admin = Admin()
+    admin = admin()
     return admin.schedule_meeting(details, user_id=user_id)
 
 @mcp.tool()
@@ -201,7 +210,7 @@ def finance_balance(user_id: int = None) -> str:
     Returns:
         Balance or result from the FinanceResource agent.
     """
-    fr = FinanceResource()
+    fr = finance_resource()
     return fr.handle_request("balance", user_id=user_id)
 
 # --- MCP Plugin Tools ---
@@ -220,7 +229,8 @@ def chromadb_query(query: str, top_k: int = 3) -> str:
     from dotenv import load_dotenv
     import chromadb
 
-    load_dotenv()
+    # Always load .env for config
+    load_dotenv(dotenv_path=".env")
     db_path = os.getenv("CHROMA_DB_PATH", "./chroma_data/")
     try:
         client = chromadb.PersistentClient(path=db_path)
@@ -247,8 +257,8 @@ def get_weather(location: str) -> str:
     import requests
     from dotenv import load_dotenv
 
-    # Load .env if present
-    load_dotenv()
+    # Always load .env for config
+    load_dotenv(dotenv_path=".env")
 
     api_key = os.getenv("OPENWEATHERMAP_API_KEY")
     if not api_key:
@@ -318,7 +328,7 @@ def add_event(title: str, date: str) -> str:
     creds_path = os.getenv("GOOGLE_CALENDAR_CREDENTIALS_JSON", "google_calendar_service_account.json")
 
     if not calendar_id or not os.path.exists(creds_path):
-        return "Google Calendar config missing. Set GOOGLE_CALENDAR_ID and provide service account JSON."
+        return "Google Calendar config missing. Set GOOGLE_CALENDAR_ID and GOOGLE_CALENDAR_CREDENTIALS_JSON in your .env file."
 
     try:
         creds = service_account.Credentials.from_service_account_file(
@@ -419,6 +429,41 @@ def fileops_read_file(path: str) -> str:
             return f.read()
     except Exception as e:
         return f"Error reading file: {e}"
+
+@mcp.tool()
+def web_search(query: str, num_results: int = 5) -> str:
+    """
+    Search the web using Google and return summaries of the top results.
+    Args:
+        query: Search query string.
+        num_results: Number of results to return (default: 5).
+    Returns:
+        Summaries of top search results or error message.
+    """
+    import requests
+    from bs4 import BeautifulSoup
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; VERN/1.0; +https://github.com/harleysmodernlife/VERN)"
+    }
+    search_url = "https://www.google.com/search"
+    params = {"q": query, "num": num_results}
+    try:
+        resp = requests.get(search_url, params=params, headers=headers, timeout=10)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        results = []
+        for g in soup.find_all("div", class_="g")[:num_results]:
+            title = g.find("h3")
+            snippet = g.find("span", class_="aCOpRe")
+            link = g.find("a")
+            if title and link:
+                results.append(f"{title.text}\n{link['href']}\n{snippet.text if snippet else ''}")
+        if not results:
+            return "No results found or Google blocked the request."
+        return "\n\n".join(results)
+    except Exception as e:
+        return f"Web search error: {e}"
 
 # For direct execution (optional)
 if __name__ == "__main__":

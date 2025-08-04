@@ -4,7 +4,7 @@ VERN Career & Work Agent (Function-Based)
 Handles work, productivity, and professional development for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def career_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def career_respond(user_input, context=None, agent_status=None, persona="default
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Career & Work Agent. Advise on productivity, professional development, and actionable next steps.",
             "coach": "You are a career coach. Motivate, guide, and support the user toward career goals.",

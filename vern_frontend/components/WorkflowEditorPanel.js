@@ -1,181 +1,230 @@
-// vern_frontend/components/WorkflowEditorPanel.js
-import React, { useState } from "react";
-
-// Demo agent/plugin list (replace with live backend data)
-const AGENTS = [
-  "dev_team", "research", "health", "finance", "admin", "creativity", "career", "social",
-  "environment", "legal", "travel", "security", "archetype", "emergent", "id10t_monitor"
-];
-const PLUGINS = ["weather", "calendar", "fileops", "chromadb"];
+import React, { useState, useEffect } from "react";
 
 export default function WorkflowEditorPanel() {
-  // Add a "context" property to each agent step to hold per-step context info.
-  const [steps, setSteps] = useState([]);
-  const [newStep, setNewStep] = useState({
-    type: "agent",
-    name: AGENTS[0],
-    persona: "default",
-    context: "" // new field for per-step context
-  });
+  const [workflows, setWorkflows] = useState({});
   const [workflowName, setWorkflowName] = useState("");
-  const [savedWorkflows, setSavedWorkflows] = useState([]);
-  const [executing, setExecuting] = useState(false);
-  const [output, setOutput] = useState("");
+  const [steps, setSteps] = useState([{ agent: "", input: "", persona: "default", context: "" }]);
+  const [runResult, setRunResult] = useState(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [resourceStatus, setResourceStatus] = useState({ cpu: "normal", ram: "normal" });
 
-  function addStep() {
-    setSteps([...steps, { ...newStep }]);
-  }
+  // Fetch workflows
+  useEffect(() => {
+    fetch("/agents/workflows/list")
+      .then(res => res.json())
+      .then(data => setWorkflows(data))
+      .catch(() => setWorkflows({}));
+  }, [success]);
 
-  function removeStep(idx) {
-    setSteps(steps.filter((_, i) => i !== idx));
-  }
+  // Add step
+  const addStep = () => {
+    setSteps([...steps, { agent: "", input: "", persona: "default", context: "" }]);
+  };
 
-  function saveWorkflow() {
-    if (!workflowName) return;
-    setSavedWorkflows([...savedWorkflows, { name: workflowName, steps }]);
-    setWorkflowName("");
-    setSteps([]);
-  }
+  // Update step
+  const updateStep = (idx, field, value) => {
+    const newSteps = steps.map((step, i) =>
+      i === idx ? { ...step, [field]: value } : step
+    );
+    setSteps(newSteps);
+  };
 
-  async function executeWorkflow() {
-    setExecuting(true);
-    setOutput("");
-    // Prepare workflow payload including per-step context
-    const workflowPayload = steps.map(s => ({
-      type: s.type,
-      name: s.name,
-      persona: s.type === "agent" ? s.persona : undefined,
-      context: s.context // include per-step context (may be blank)
-    }));
+  // Fetch resource status (stub/demo)
+  useEffect(() => {
+    fetch("/system/status")
+      .then(res => res.json())
+      .then(data => setResourceStatus(data))
+      .catch(() => setResourceStatus({ cpu: "normal", ram: "normal" }));
+  }, []);
+
+  // Create workflow
+  const createWorkflow = async () => {
+    setError("");
+    setSuccess("");
     try {
-      const res = await fetch("http://localhost:8000/agents/orchestrator/respond", {
+      const res = await fetch("/agents/workflows/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_input: "Run workflow: " + workflowPayload.map(s => s.name).join(" → "),
-          context: { workflow: workflowPayload },
-          agent_status: "All agents online",
-          user_id: "default_user",
-          verbose: true
-        })
+        body: JSON.stringify({ name: workflowName, steps })
       });
       const data = await res.json();
-      setOutput(data.response || JSON.stringify(data));
+      setSuccess(data.result);
+      setWorkflowName("");
+      setSteps([{ agent: "", input: "" }]);
     } catch (err) {
-      setOutput("Error executing workflow.");
+      setSuccess("");
+      setError("Failed to create workflow.");
+      // eslint-disable-next-line no-console
+      console.log("DEBUG: Error caught in createWorkflow", err);
     }
-    setExecuting(false);
-  }
+  };
+
+  // Run workflow
+  const runWorkflow = name => {
+    setError("");
+    setRunResult(null);
+    fetch("/agents/workflows/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name })
+    })
+      .then(res => res.json())
+      .then(data => setRunResult(data.result))
+      .catch(err => setError("Failed to run workflow."));
+  };
 
   return (
-    <div style={{ border: "2px solid #09c", padding: "2rem", borderRadius: "8px", marginTop: "2rem" }}>
-      <h3>Workflow Editor (Turbo Mode)</h3>
-      <div style={{ marginBottom: "1rem" }}>
-        <b>Add Step:</b>
-        <select 
-          value={newStep.type} 
-          onChange={e => setNewStep({ ...newStep, type: e.target.value, context: "" })} 
-          style={{ marginLeft: "0.5rem" }}
-        >
-          <option value="agent">Agent</option>
-          <option value="plugin">Plugin</option>
-        </select>
-        <select
-          value={newStep.name}
-          onChange={e => setNewStep({ ...newStep, name: e.target.value })}
-          style={{ marginLeft: "0.5rem" }}
-        >
-          {(newStep.type === "agent" ? AGENTS : PLUGINS).map(n => (
-            <option key={n} value={n}>{n}</option>
-          ))}
-        </select>
-        {newStep.type === "agent" && (
-          <>
-            <input
-              type="text"
-              value={newStep.persona}
-              onChange={e => setNewStep({ ...newStep, persona: e.target.value })}
-              placeholder="Persona (default, coach, analyst, etc.)"
-              style={{ marginLeft: "0.5rem", width: "160px" }}
-            />
-            <input
-              type="text"
-              value={newStep.context}
-              onChange={e => setNewStep({ ...newStep, context: e.target.value })}
-              placeholder="Step context (optional)"
-              style={{ marginLeft: "0.5rem", width: "200px" }}
-            />
-          </>
-        )}
-        {newStep.type === "plugin" && (
-          <input
-            type="text"
-            value={newStep.context}
-            onChange={e => setNewStep({ ...newStep, context: e.target.value })}
-            placeholder="Plugin parameters (optional)"
-            style={{ marginLeft: "0.5rem", width: "200px" }}
-          />
-        )}
-        <button onClick={addStep} style={{ marginLeft: "1rem" }}>Add</button>
+    <div style={{ border: "1px solid #aaa", padding: "2rem", borderRadius: "8px", marginTop: "2rem" }}>
+      <h2>Workflow Editor</h2>
+      <div style={{ marginBottom: "1rem", color: "#555" }}>
+        <b>Need help?</b> See the <a href="/QUICKSTART.md" target="_blank" rel="noopener noreferrer">Quickstart Guide</a> for workflow instructions.
       </div>
-      
-      <div style={{ marginBottom: "1rem" }}>
-        <b>Workflow Steps:</b>
-        <ul>
-          {steps.map((step, idx) => (
-            <li key={idx}>
-              <span style={{ fontWeight: "bold" }}>
-                {step.type === "agent" ? "Agent" : "Plugin"}:
-              </span> {step.name}
-              {step.type === "agent" && (
-                <span> <i>({step.persona})</i></span>
-              )}
-              {step.context && (
-                <span> - <i>Context: {step.context}</i></span>
-              )}
-              <button onClick={() => removeStep(idx)} style={{ marginLeft: "1rem" }}>Remove</button>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      <div style={{ marginBottom: "1rem" }}>
+      {error
+        ? <div style={{ color: "red", marginBottom: "1rem" }}>Error: {error}</div>
+        : success && <div style={{ color: "green", marginBottom: "1rem" }}>{success}</div>
+      }
+      <div>
+        <h3>Create Workflow</h3>
         <input
           type="text"
+          placeholder="Workflow Name"
           value={workflowName}
           onChange={e => setWorkflowName(e.target.value)}
-          placeholder="Workflow Name"
-          style={{ marginRight: "1rem" }}
+          style={{ marginBottom: "1rem", width: "200px" }}
         />
-        <button onClick={saveWorkflow} disabled={!workflowName || steps.length === 0}>
-          Save Workflow
-        </button>
-      </div>
-      
-      <div style={{ marginBottom: "1rem" }}>
-        <b>Saved Workflows:</b>
-        <ul>
-          {savedWorkflows.length === 0 ? <li>No saved workflows.</li> : savedWorkflows.map((wf, idx) => (
-            <li key={idx}>
-              <span style={{ fontWeight: "bold" }}>{wf.name}:</span> {wf.steps.map(s => s.name).join(" → ")}
-              <button onClick={() => setSteps(wf.steps)} style={{ marginLeft: "1rem" }}>Load</button>
-            </li>
+        {/* Resource Monitoring Bar */}
+        <div style={{ marginBottom: "1rem", padding: "0.5rem", background: "#f6f6ff", borderRadius: "8px", border: "1px solid #ddd" }}>
+          <strong>Resource Status:</strong> CPU: {resourceStatus.cpu}, RAM: {resourceStatus.ram}
+        </div>
+        {/* Visual Canvas for Drag-and-Drop Steps */}
+        <div
+          style={{
+            border: "2px dashed #bbb",
+            borderRadius: "12px",
+            minHeight: "180px",
+            marginBottom: "1rem",
+            padding: "1rem",
+            background: "#f9f9f9",
+            position: "relative"
+          }}
+        >
+          <h4>Workflow Canvas (Drag steps to reorder, links are visual only)</h4>
+          {steps.map((step, idx) => (
+            <div
+              key={idx}
+              draggable
+              onDragStart={e => {
+                e.dataTransfer.setData("stepIdx", idx);
+              }}
+              onDrop={e => {
+                const fromIdx = Number(e.dataTransfer.getData("stepIdx"));
+                if (fromIdx !== idx) {
+                  const reordered = [...steps];
+                  const [moved] = reordered.splice(fromIdx, 1);
+                  reordered.splice(idx, 0, moved);
+                  setSteps(reordered);
+                }
+              }}
+              onDragOver={e => e.preventDefault()}
+              style={{
+                marginBottom: "0.5rem",
+                padding: "0.5rem",
+                background: "#fff",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+                cursor: "grab",
+                position: "relative"
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Agent (e.g. research, finance, health)"
+                value={step.agent}
+                onChange={e => updateStep(idx, "agent", e.target.value)}
+                style={{ marginRight: "0.5rem", width: "180px" }}
+              />
+              <input
+                type="text"
+                placeholder="Input"
+                value={step.input}
+                onChange={e => updateStep(idx, "input", e.target.value)}
+                style={{ width: "180px" }}
+              />
+              {/* Persona/context tuning */}
+              <select
+                value={step.persona}
+                onChange={e => updateStep(idx, "persona", e.target.value)}
+                style={{ marginLeft: "0.5rem", width: "140px" }}
+                aria-label="Persona tuning"
+              >
+                <option value="default">Default</option>
+                <option value="coach">Health Coach</option>
+                <option value="medic">Medical Assistant</option>
+                <option value="mindfulness">Mindfulness Guide</option>
+                <option value="advisor">Advisor</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Context (optional)"
+                value={step.context}
+                onChange={e => updateStep(idx, "context", e.target.value)}
+                style={{ marginLeft: "0.5rem", width: "180px" }}
+                aria-label="Context tuning"
+              />
+              {/* Visual arrow to next step */}
+              {idx < steps.length - 1 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    right: "-30px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: "2rem",
+                    color: "#bbb"
+                  }}
+                >
+                  →
+                </div>
+              )}
+              {/* Live preview (stub/demo) */}
+              <div style={{ marginTop: "0.5rem", fontSize: "0.95rem", color: "#888" }}>
+                <em>Preview:</em> {step.agent && step.input ? `Would run agent "${step.agent}" with input "${step.input}", persona "${step.persona}", context "${step.context}"` : "Fill in agent and input"}
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
+        <button onClick={addStep} style={{ marginRight: "1rem" }}>Add Step</button>
+        <button onClick={async () => await createWorkflow()}>Create Workflow</button>
       </div>
-      
-      <button onClick={executeWorkflow} disabled={steps.length === 0 || executing}>
-        {executing ? "Executing..." : "Run Workflow"}
-      </button>
-      
-      <div style={{ marginTop: "2rem", background: "#eef", padding: "1rem", borderRadius: "6px", minHeight: "2rem" }}>
-        <b>Output:</b>
-        <div>{output}</div>
+      <div style={{ marginTop: "2rem" }}>
+        <h3>Available Workflows</h3>
+        {Object.keys(workflows).length === 0 ? (
+          <div>No workflows found.</div>
+        ) : (
+          <ul>
+            {Object.entries(workflows).map(([name, steps]) => (
+              <li key={name} style={{ marginBottom: "1rem" }}>
+                <strong>{name}</strong>
+                <ul>
+                  {steps.map((step, idx) => (
+                    <li key={idx}>
+                      Agent: {step.agent}, Input: {step.input}
+                    </li>
+                  ))}
+                </ul>
+                <button onClick={() => runWorkflow(name)}>Run Workflow</button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-      
-      <div style={{ marginTop: "2rem", fontSize: "0.95em", color: "#666" }}>
-        <b>Guided Tour:</b> Drag-and-drop is coming soon. For now, build workflows step-by-step, save, load, and run them. Try experimenting with adding context to each step for more tailored responses.
-      </div>
+      {runResult && (
+        <div style={{ marginTop: "2rem", borderTop: "1px solid #ddd", paddingTop: "1rem" }}>
+          <h3>Workflow Run Result</h3>
+          <pre>{JSON.stringify(runResult, null, 2)}</pre>
+        </div>
+      )}
     </div>
   );
 }

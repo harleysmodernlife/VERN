@@ -4,7 +4,7 @@ VERN Health & Wellness Agent (Function-Based)
 Handles health, wellness, and medical queries for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def health_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def health_respond(user_input, context=None, agent_status=None, persona="default
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Health & Wellness Agent. Provide health advice, wellness tips, and actionable recommendations.",
             "coach": "You are a health coach. Motivate, guide, and support the user toward wellness goals.",

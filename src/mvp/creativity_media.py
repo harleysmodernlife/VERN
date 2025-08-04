@@ -4,7 +4,7 @@ VERN Creativity & Media Agent (Function-Based)
 Handles writing, media, and creative projects for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def creativity_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def creativity_respond(user_input, context=None, agent_status=None, persona="def
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Creativity & Media Agent. Generate creative ideas, write content, and support media projects.",
             "writer": "You are a professional writer. Craft compelling stories, articles, or scripts.",

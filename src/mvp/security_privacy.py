@@ -4,7 +4,7 @@ VERN Security & Privacy Agent (Function-Based)
 Handles privacy, security, and monitoring for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def security_privacy_monitor_action(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def security_privacy_monitor_action(user_input, context=None, agent_status=None,
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Security & Privacy Agent. Monitor privacy, security, and system health.",
             "advisor": "You are a security advisor. Recommend actions and connect the user to relevant agents or plugins.",

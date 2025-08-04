@@ -12,11 +12,9 @@ backends:
   ollama-phi:
     provider: ollama
     model: phi
-  # Removed fake_llm for production robustness
   openai-gpt-4:
     provider: openai
     model: gpt-4
-  # Add more models/providers as needed...
 
 # Per-agent backend selection (optional, for future advanced workflows)
 agents:
@@ -24,4 +22,57 @@ agents:
   knowledge_broker: ollama-qwen3:0.6b
   research: ollama-qwen3:0.6b
   admin: ollama-qwen3:0.6b
-  # Add more agents as needed...
+
+# --- NEW: ASR (Speech-to-Text) backends ---
+default_asr: whisper-base
+
+asr_backends:
+  whisper-base:
+    provider: whisper
+    model: base
+  whisper-tiny:
+    provider: whisper
+    model: tiny
+  google-speech:
+    provider: google
+    model: speech-to-text
+  espeak-asr:
+    provider: espeak
+    model: default
+
+asr_agents:
+  dev_team: whisper-base
+  admin: google-speech
+
+# --- NEW: TTS (Text-to-Speech) backends ---
+default_tts: coqui-tts
+
+tts_backends:
+  coqui-tts:
+    provider: coqui
+    model: tts_models/en/ljspeech/tacotron2-DDC
+  google-tts:
+    provider: google
+    model: text-to-speech
+  espeak-tts:
+    provider: espeak
+    model: default
+
+tts_agents:
+  dev_team: coqui-tts
+  admin: google-tts
+
+# --- Vision backends (future extension) ---
+default_vision: tesseract
+
+vision_backends:
+  tesseract:
+    provider: tesseract
+    model: default
+  google-vision:
+    provider: google
+    model: vision-api
+
+vision_agents:
+  dev_team: tesseract
+  admin: google-vision

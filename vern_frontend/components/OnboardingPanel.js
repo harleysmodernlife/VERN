@@ -16,7 +16,9 @@ const messages = {
     feedback: "Feedback:",
     submit: "Submit Feedback",
     thankYou: "Thank you for your feedback!",
-    language: "Language"
+    language: "Language",
+    neo4jMissing: "Neo4j graph memory is not available. For full features, launch with Docker Compose or start Neo4j manually.",
+    backendMissing: "Backend API is not running. Please start the backend or use Docker Compose."
   },
   es: {
     panelTitle: "Introducción y Accesibilidad",
@@ -31,7 +33,9 @@ const messages = {
     feedback: "Comentarios:",
     submit: "Enviar Comentarios",
     thankYou: "¡Gracias por sus comentarios!",
-    language: "Idioma"
+    language: "Idioma",
+    neo4jMissing: "La memoria de grafo Neo4j no está disponible. Para todas las funciones, inicie con Docker Compose o inicie Neo4j manualmente.",
+    backendMissing: "La API de backend no está en funcionamiento. Por favor, inicie el backend o use Docker Compose."
   }
 };
 
@@ -43,10 +47,25 @@ export default function OnboardingPanel() {
   const [feedback, setFeedback] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  // Dependency status
+  const [neo4jStatus, setNeo4jStatus] = useState(null);
+  const [backendStatus, setBackendStatus] = useState(null);
+
   useEffect(() => {
     // Reset checklist when language changes
     setChecklist(Object.fromEntries(messages[locale].checklist.map(item => [item, false])));
   }, [locale]);
+
+  useEffect(() => {
+    // Check backend status
+    fetch("http://localhost:8000/status")
+      .then(res => res.ok ? setBackendStatus(true) : setBackendStatus(false))
+      .catch(() => setBackendStatus(false));
+    // Check Neo4j status (try a simple query endpoint)
+    fetch("http://localhost:8000/memory/entity?entity_id=test")
+      .then(res => res.ok ? setNeo4jStatus(true) : setNeo4jStatus(false))
+      .catch(() => setNeo4jStatus(false));
+  }, []);
 
   function handleCheck(item) {
     setChecklist({ ...checklist, [item]: !checklist[item] });
@@ -59,7 +78,18 @@ export default function OnboardingPanel() {
 
   return (
     <IntlProvider locale={locale} messages={messages[locale]}>
-      <div style={{ border: "1px solid #09c", padding: "2rem", borderRadius: "8px", marginTop: "2rem" }}>
+      <div style={{ border: "1px solid #09c", padding: "2rem", borderRadius: "8px", marginTop: "2rem" }} role="region" aria-label="Onboarding and Accessibility Panel">
+        {/* Dependency notifications */}
+        {backendStatus === false && (
+          <div style={{ color: "red", marginBottom: "1rem", fontWeight: "bold" }}>
+            <FormattedMessage id="backendMissing" defaultMessage={messages[locale].backendMissing} />
+          </div>
+        )}
+        {neo4jStatus === false && (
+          <div style={{ color: "orange", marginBottom: "1rem", fontWeight: "bold" }}>
+            <FormattedMessage id="neo4jMissing" defaultMessage={messages[locale].neo4jMissing} />
+          </div>
+        )}
         <div style={{ marginBottom: "1rem" }}>
           <label htmlFor="lang-select-onboard" style={{ marginRight: "0.5rem" }}>
             <FormattedMessage id="language" defaultMessage="Language" />:
@@ -79,21 +109,68 @@ export default function OnboardingPanel() {
             Choose your preferred language for onboarding and accessibility.
           </span>
         </div>
-        <h3>
-          <FormattedMessage id="panelTitle" defaultMessage="Onboarding & Accessibility" />
-        </h3>
+        {/* Backend selection guidance */}
+        <div style={{ marginBottom: "1rem", background: "#f9f9f9", border: "1px solid #ccc", padding: "1rem", borderRadius: "6px" }}>
+          <strong>Backend Selection Guidance:</strong>
+          <ul>
+            <li>
+              <span role="img" aria-label="light">💡</span> For laptops with &lt; 8GB RAM, select lightweight backends (e.g. <b>espeak-asr</b>, <b>espeak-tts</b>, <b>tesseract</b>).
+            </li>
+            <li>
+              <span role="img" aria-label="heavy">⚡</span> Whisper and Coqui require more RAM/CPU and are optional. Use only if you have sufficient resources.
+            </li>
+            <li>
+              <span role="img" aria-label="config">🛠️</span> You can change backend options in the Config Editor panel. All backends are optional and configurable.
+            </li>
+            <li>
+              <span role="img" aria-label="fallback">🔄</span> If a backend is not installed or resources are low, VERN will automatically fall back to a stub or lightweight backend.
+            </li>
+            <li>
+              <span role="img" aria-label="docs">📖</span> See README and Agent Guides for details on backend options and resource requirements.
+            </li>
+          </ul>
+        </div>
+        <h3 tabIndex={0} aria-label="Onboarding and Accessibility">{<FormattedMessage id="panelTitle" defaultMessage="Onboarding & Accessibility" />}</h3>
         <ul>
           {messages[locale].checklist.map(item => (
-            <li key={item}>
+            <li key={item} style={{ position: "relative" }}>
               <label>
                 <input
                   type="checkbox"
                   checked={checklist[item]}
                   onChange={() => handleCheck(item)}
                   aria-checked={checklist[item]}
-                  aria-label={item}
+                  aria-label={`Checklist item: ${item}`}
+                  title={`Learn more about "${item}"`}
                 />{" "}
                 {item}
+                <a
+                  href={
+                    item === "Read the README"
+                      ? "/README.md"
+                      : item === "Configured .env"
+                      ? "/.env"
+                      : item === "Tested a plugin/tool"
+                      ? "/QUICKSTART.md"
+                      : item === "Joined the Community"
+                      ? "https://github.com/harleysmodernlife/VERN#community"
+                      : item === "Reviewed Security Guidelines"
+                      ? "/SECURITY_AND_GIT_GUIDELINES.md"
+                      : "#"
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    marginLeft: "0.5rem",
+                    textDecoration: "underline",
+                    color: "#09c",
+                    fontSize: "0.9em"
+                  }}
+                  aria-label={`Open help for ${item}`}
+                  title={`Open help for ${item}`}
+                >
+                  [?]
+                </a>
               </label>
             </li>
           ))}
@@ -175,6 +252,11 @@ function PersonaSetup({ locale }) {
       {message && (
         <div style={{ marginTop: "0.5rem", color: message.startsWith("Error") ? "red" : "green" }}>
           {message}
+        </div>
+      )}
+      {message.startsWith("Error") && (
+        <div style={{ color: "red", marginTop: "0.5rem" }}>
+          Please check your internet connection and try again, or contact support if the problem persists.
         </div>
       )}
     </div>

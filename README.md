@@ -1,187 +1,278 @@
-# VERN
+# VERN Project
 
-## Diagram/Image Workflow for Docs
+**Note:** Voice features (ASR/TTS) require optional packages like `whisper`.  
+These are not installed by default. If you want voice support, run:
+```
+pip install git+https://github.com/openai/whisper.git
+```
+Otherwise, VERN will run without voice features.
 
-To add diagrams or visuals in VERN documentation (for non-image editors):
+## CI/CD & Health Checks
 
-```text
-+-------------------+      +-------------------+
-|   Frontend (GUI)  |<---->|   Backend (API)   |
-+-------------------+      +-------------------+
-         |                        |
-         v                        v
-   [User Actions]           [Agent Logic]
+- Automated tests and health checks run on every push and pull request via GitHub Actions.
+- Tests cover agent orchestration, LLM routing, prompt utilities, and more.
+- Health checks verify memory backend, LLM, and plugin availability.
+- See `.github/workflows/ci.yml` for pipeline details.
+
+## Backend Selection & Resource Awareness
+
+- All ASR, TTS, vision, and memory backends are optional and configurable.
+- Memory subsystem defaults to in-memory or file-based graph storage for resource-constrained setups.
+- To use Neo4j, set `VERN_MEMORY_BACKEND=neo4j` in your `.env` and ensure Neo4j is running/configured.
+- If Neo4j is not available, agents/plugins will fall back automatically and log a warning.
+- Example config for low-resource setup:
+  ```yaml
+  default_asr: espeak-asr
+  default_tts: espeak-tts
+  default_vision: tesseract
+  ```
+- No forced installs. Use only the models/APIs/backends you already have.
+- See docs for details on backend options, memory fallback, and resource requirements.
+
+## Import Hygiene
+
+All Python imports in VERN use absolute paths from the project root (e.g., `from src.db.logger import ...`, `from src.mvp.llm_router import ...`).  
+Relative imports (e.g., `from db.logger import ...` or `from mvp.llm_router import ...`) are not supported and will cause import errors.  
+**Always use absolute imports** to ensure compatibility with FastAPI, uvicorn, and CLI tools.
+
+If you see "ModuleNotFoundError" or "ImportError", check that your imports use the `src.` prefix and match the project structure.
+
+## Dashboard Integration: Web Search Panel
+
+To wire the `/web_search` backend endpoint to a dashboard panel, use a React/Next.js component like this:
+
+```javascript
+// components/WebSearchPanel.js
+import { useState } from "react";
+export default function WebSearchPanel() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const search = async () => {
+    const res = await fetch("/api/web_search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, num_results: 3 }),
+    });
+    const data = await res.json();
+    setResults(data.results || []);
+  };
+  return (
+    <div>
+      <input value={query} onChange={e => setQuery(e.target.value)} />
+      <button onClick={search}>Search</button>
+      <ul>
+        {results.map((r, i) => <li key={i}>{r}</li>)}
+      </ul>
+    </div>
+  );
+}
 ```
 
-*Diagram: High-level VERN architecture showing the frontend and backend interaction, with user actions routed to agent logic.*
+## Minimal Working Example: /web_search Endpoint
 
-- Write diagrams in Markdown code blocks using ASCII/text.
-- Add a clear, concise text description below each diagram.
-- Optionally add `<!-- TODO: Convert to SVG/PNG for docs -->` for future contributors.
-- When ready, convert ASCII diagrams to SVG/PNG using tools like Excalidraw, Mermaid, draw.io, or AI image generators.
-- Replace or supplement the code block with the image, keeping the text description for accessibility.
+After starting the backend, you can test the `/web_search` endpoint:
 
-This workflow ensures visuals are accessible, editable, and convertible for production docs.
-
-**Vision:**  
-VERN is an open, modular agent ecosystem designed to empower humans and AI to collaborate, learn, and thrive—together. Our mission is to revolutionize how people use AI and how AI understands and works with people and other AI, ensuring survival, growth, and well-being for all.
-
-**Motivation:**  
-Humanity and AI face a future where understanding, teamwork, and adaptability are critical. VERN is built to bridge gaps, augment knowledge, and foster resilient, creative partnerships—especially for those often left behind by technology.
-
-**Core Values:**  
-- Survival and thriving of both humans and AI as partners  
-- Transparency, explainability, and ethical alignment  
-- Accessibility and inclusivity for all users  
-- Continuous learning, feedback, and improvement  
-- Collaboration, critical thinking, and open communication
-
----
-
-## Architecture Overview
-
-> **VERN is a modular, agent-based system with a clear backend/frontend split.**
-
-**Backend:**  
-- Built with Python (FastAPI), managing all agent logic, plugin registry, orchestration, advanced dynamic feedback processing, and REST/WebSocket APIs.  
-- Directory: `vern_backend/`  
-- See [vern_backend/README.md](vern_backend/README.md)
-
-**Frontend:**  
-- Constructed with Next.js (React), featuring a modular dashboard for plugin management, interactive onboarding, workflow visualization with per-step context support, real-time notifications, and integrated feedback.  
-- Directory: `vern_frontend/`  
-- See [vern_frontend/README.md](vern_frontend/README.md)
-
-**Key Components:**  
-- **Modular Agent Clusters:**  
-  Agents (DevTeam, KnowledgeBroker, Research, Health, Finance, Admin, Creativity, Career, Social, Environment, Legal, Travel, Security, Archetype, Emergent, ID10T Monitor) support persona tuning through both UI and API.
-  
-- **Orchestrator:**  
-  Coordinates multi-agent communication while refining per-step context using advanced processing (trimming, capitalization, and other tailored adjustments). It also integrates a dynamic feedback loop: aggregated user feedback triggers automatic recommendations for adjusting agent parameters.
-  
-- **Workflow Editor:**  
-  A visual tool that now supports per-step context input. The context for each step is refined in the backend for improved agent performance. Further sophisticated processing is planned for future sprints.
-  
-- **Feedback System:**  
-  Users can submit feedback directly through the dashboard. Feedback is aggregated and used by the orchestrator to tune agent parameters dynamically.
-  
-- **Real-Time Notifications:**  
-  A dedicated NotificationPanel displays live alerts regarding system errors and significant events.
-  
-- **User Onboarding and Guided Tours:**  
-  Interactive panels guide new users through dashboard features, ensuring a smooth introduction.
-  
-- **Security & Extensibility:**  
-  Incorporates robust logging, secure JWT/OAuth2 authentication, and a modular design for seamless feature expansion.
-
----
-
-## API Reference
-
-- **Backend API docs:** [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger/OpenAPI)
-
-### Example Endpoints
-
-#### List All Agent Clusters
+**With curl:**
 ```bash
-curl -X GET http://localhost:8000/agents
-```
-
-#### Send a Message to an Agent (with Persona, Context, and Memory)
-```bash
-curl -X POST http://localhost:8000/agents/devteam/respond \
+curl -X POST http://localhost:8000/web_search \
   -H "Content-Type: application/json" \
-  -d '{"message": "What is our current project status?", "persona": "architect", "context": {"project": "VERN"}, "memory": "previous interactions"}'
+  -d '{"query": "VERN project", "num_results": 3}'
 ```
 
-#### List All Available Plugins/Tools
+**With httpie:**
 ```bash
-curl -X GET http://localhost:8000/plugins
+http POST http://localhost:8000/web_search query="VERN project" num_results:=3
 ```
 
-#### Call a Plugin/Tool
+## Quick Start
+
+### 🚀 One-Click Full Suite: Docker Compose
+
+You can launch the entire VERN stack (backend, frontend, Neo4j) with a single command using Docker Compose:
+
 ```bash
-curl -X POST http://localhost:8000/plugins/weather_plugin/call \
-  -H "Content-Type: application/json" \
-  -d '{"params": {"location": "Chicago"}}'
+docker-compose up --build
 ```
 
-#### Submit a Plugin to the Marketplace
-```bash
-curl -X POST http://localhost:8000/plugins/submit \
-  -H "Content-Type: application/json" \
-  -d '{"name": "my_plugin", "description": "Does something cool", "code": "def run(): ...", "author": "yourname"}'
-```
+- This will build and start:
+  - Neo4j database (for graph memory, official image, no Dockerfile needed)
+  - Backend API (FastAPI, built from vern_backend/Dockerfile)
+  - Frontend dashboard (Next.js, built from vern_frontend/Dockerfile)
+- Access:
+  - Frontend: [http://localhost:3000](http://localhost:3000)
+  - Backend API: [http://localhost:8000](http://localhost:8000)
+  - Neo4j browser: [http://localhost:7474](http://localhost:7474) (username: neo4j, password: password)
 
-#### View Workflow Logs
+To stop everything:
 ```bash
-curl -X GET http://localhost:8000/agents/workflows/logs
-```
-
-#### Authentication Example
-```bash
-curl -H "Authorization: Bearer <your_token>" http://localhost:8000/secure-status
+docker-compose down
 ```
 
 ---
 
-## Sample Workflows
+## Manual Setup (if you prefer)
 
-- **Chat with Agents:**  
-  Submit messages via the dashboard or CLI. The orchestrator routes your input to the relevant agent(s) and aggregates responses.
-  
-- **Persona Tuning:**  
-  Choose different personas (e.g., coach, architect, mentor) to shape agent responses via both the UI and API.
-  
-- **Agent Memory & Context:**  
-  Agents use previous interactions and refined per-step context data (processed in the orchestrator) to generate informed responses.
-  
-- **Advanced Multi-Agent Workflows:**  
-  Chain agents and plugins visually or via API to execute complex tasks. Each workflow step can include customized and refined context.
-  
-- **Feedback-Driven Parameter Adjustment:**  
-  Submit feedback through the dashboard. The orchestrator uses aggregated feedback to recommend parameter adjustments, enhancing overall system performance.
-  
-- **Real-Time Notifications:**  
-  Stay informed about system errors and events with live alerts from the NotificationPanel.
-  
-- **User Onboarding:**  
-  Interactive guides assist you with dashboard navigation and feature utilization.
+1. **Install dependencies**
+   - Python 3.10+ required.
+   - Create a virtual environment:
+     ```
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+   - Install backend dependencies:
+     ```
+     pip install -r requirements.txt
+     ```
+   - Install frontend dependencies:
+     ```
+     cd vern_frontend
+     npm install
+     ```
+
+2. **Environment Setup**
+   - Edit `.env` in the project root. Fill in all required values (see comments in the file).
+   - Do NOT use `.env.example`—it has been removed.
+
+3. **Database Initialization**
+   - For SQLite, run:
+     ```
+     python src/db/init_db.py
+     ```
+   - For other DBs, check `src/db/schema.sql` and update connection settings.
+
+4. **Import Self-Test (Recommended)**
+   - Before starting the backend, run the import self-test script to check for broken imports:
+     ```
+     PYTHONPATH=. python scripts/check_imports.py
+     ```
+   - If you see any `[ERROR]` lines, fix the import paths before proceeding.
+
+5. **Launch Backend**
+   - Start backend API:
+     ```
+     PYTHONPATH=. uvicorn vern_backend.app.main:app --host 0.0.0.0 --port 8000
+     ```
+   - Or use CLI:
+     ```
+     python src/mvp/cli.py
+     ```
+
+5. **Launch Frontend**
+   - In `vern_frontend`:
+     ```
+     npm run dev
+     ```
+   - Open browser at `http://localhost:3000`.
+
+6. **Testing**
+   - Backend:
+     ```
+     PYTHONPATH=src pytest tests/
+     ```
+     - Only core agent orchestration and LLM routing are tested by default.
+     - Legacy, Whisper, MCP, and plugin registry tests have been removed.
+     - Add new tests in `tests/` as you add features.
+   - Frontend:
+     ```
+     cd vern_frontend
+     npm test
+     ```
+   - Integration tests now cover dashboard, onboarding, help panels, and onboarding checklist logic.
+   - All tests passing as of August 2025.
 
 ---
 
-## Troubleshooting & FAQ
+## Environment Variables
 
-**Common Issues:**  
-- **Startup Problems:**  
-  Ensure Python (3.9+), Node.js (18+), and virtual environments are correctly set up.  
-- **API Errors:**  
-  Check backend logs; confirm uvicorn is running and endpoints are correctly addressed.  
-- **LLM Response Issues:**  
-  Verify Ollama is running and models are properly configured.  
-- **Plugin Visibility:**  
-  Refresh the Plugin Registry panel if a plugin is missing.  
-- **Database Access:**  
-  Confirm that SQLite/ChromaDB files are accessible and not locked.
-
-**Debugging Tips:**  
-- Use `pytest` for backend issues and `npm test` for frontend testing.  
-- Leverage browser developer tools to inspect UI issues.  
-- Review API logs and utilize endpoints like `/logs` or `/status`.
-
----
-
-## Additional Resources
-
-- [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)  
-- [QUICKSTART.md](QUICKSTART.md)  
-- [AGENT_GUIDES/README.md](AGENT_GUIDES/README.md)  
-- [TASKS_AND_TODO.md](TASKS_AND_TODO.md)  
-- [CHANGELOG.md](CHANGELOG.md)  
-- [SECURITY_AND_GIT_GUIDELINES.md](SECURITY_AND_GIT_GUIDELINES.md)  
-- [CONTRIBUTING.md](CONTRIBUTING.md)  
-- [FUTURE_VISION_AND_ROADMAP.md](FUTURE_VISION_AND_ROADMAP.md)
+All configuration is now in `.env`. Example variables:
+```
+OPENAI_API_KEY=your-openai-key-here
+GEMINI_API_KEY=your-gemini-key-here
+OPENWEATHERMAP_API_KEY=your-openweathermap-key-here
+GOOGLE_CALENDAR_CLIENT_ID=your-google-client-id-here
+GOOGLE_CALENDAR_CLIENT_SECRET=your-google-client-secret-here
+GOOGLE_CALENDAR_ID=your-calendar-id-here
+GOOGLE_CALENDAR_CREDENTIALS_JSON=google_calendar_service_account.json
+SQLITE_DB_PATH=./db/vern.sqlite
+CHROMA_DB_PATH=./chroma_data/
+DEBUG=false
+VERN_ENV=development
+DEBUG_OLLAMA=0
+LANGUAGE=en
+ENABLE_SCREEN_READER=false
+NEO4J_URI=bolt://neo4j:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=password
+```
 
 ---
 
-**VERN is dedicated to fostering a collaborative, transparent, and intelligent human-AI partnership. Always review the documentation to ensure clarity and consistency.**
+## Troubleshooting
+
+- If you see missing config errors, check `.env` for required variables.
+- If you see `[ERROR]` lines when running `python scripts/check_imports.py`, fix the import paths to use absolute imports (e.g., `from src.db.logger import ...`).
+- If you see `ModuleNotFoundError` or `ImportError`, ensure you have installed all dependencies:
+  ```
+  pip install -r requirements.txt
+  ```
+- All code now loads `.env` directly using `dotenv`.
+- For weather and calendar plugins, ensure API keys and credentials are set in `.env`.
+- If you see "Connection refused" errors for Neo4j, make sure you started the Docker Compose stack above.
+- If you see build errors, ensure `vern_backend/Dockerfile` and `vern_frontend/Dockerfile` exist and match your codebase.
+
+---
+
+## Contributing
+
+- Follow git hygiene: always work on a feature branch, commit with clear messages, and open pull requests for review.
+- Never commit `.env` or secrets.
+
+---
+
+## Dashboard Features
+
+### Config Editor Panel
+- Edit `.env` and YAML config files directly from the dashboard.
+- Validation and error feedback included.
+- See onboarding checklist for required config.
+
+### Workflow Editor Panel
+- Build, visualize, and run multi-agent workflows.
+- Drag-and-drop canvas for reordering workflow steps.
+- Visual linking (arrows) between steps.
+- Live previews for agent/plugin outputs.
+- Chain agent outputs and automate tasks.
+
+### Plugin Marketplace Panel
+- Visual cards for each plugin: name, description, status, and icon.
+- Enable, disable, update, and remove plugins.
+- Edit plugin configuration (API keys, options) via config modal.
+- Submit new plugins for review.
+
+### Onboarding Panel
+- Step-by-step checklist for new users.
+- Persona/profile setup and feedback submission.
+- Tooltips and direct links to docs/help for each onboarding step.
+- **New:** Automatic detection and notification if Neo4j or other dependencies are missing.
+
+### Help & Troubleshooting
+- Each dashboard panel includes links to relevant documentation.
+- For common issues, see the onboarding checklist and troubleshooting section.
+
+---
+
+## Test Coverage & Documentation
+
+- Frontend integration tests cover dashboard, onboarding, help, and feedback panels.
+- Onboarding checklist logic is robust and tested.
+- Documentation (README, QUICKSTART, AGENT_GUIDES) is up to date after each sprint.
+- See `QUICKSTART.md` and `TASKS_AND_TODO.md` for more details.
+- For agent/plugin development, see `AGENT_GUIDES/`.
+
+---
+
+## Dockerfiles
+
+- **vern_backend/Dockerfile:** Builds FastAPI backend with uvicorn.
+- **vern_frontend/Dockerfile:** Builds Next.js frontend.
+- **Neo4j:** Uses official image, no Dockerfile needed.

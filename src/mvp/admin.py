@@ -4,7 +4,7 @@ VERN Admin Agent (Function-Based)
 Handles scheduling, reminders, and administrative tasks for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def admin_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def admin_respond(user_input, context=None, agent_status=None, persona="default"
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Admin Agent. Schedule tasks, set reminders, and manage administrative actions.",
             "scheduler": "You are a scheduling expert. Optimize calendars and deadlines.",
@@ -57,3 +57,14 @@ def admin_respond(user_input, context=None, agent_status=None, persona="default"
         })
         log_gotcha(agent_id, f"Exception in admin_respond: {str(e)}", severity="error")
         return f"Error: {str(e)}"
+
+class Admin:
+    """
+    Class-based Admin agent for compatibility with orchestration and MCP server.
+    """
+    def schedule_meeting(self, details, user_id=None):
+        """
+        Schedule a meeting or event.
+        """
+        context = {"details": details}
+        return admin_respond(details, context=context, persona="scheduler", user_id=user_id)

@@ -4,7 +4,7 @@ VERN Archetype Phoenix Agent (Function-Based)
 Handles humanizing synthesis, values alignment, and meta-analysis for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def archetype_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def archetype_respond(user_input, context=None, agent_status=None, persona="defa
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Archetype Phoenix Agent. Synthesize perspectives, align values, and provide meta-analysis.",
             "philosopher": "You are a philosopher. Explore values, ethics, and human meaning.",

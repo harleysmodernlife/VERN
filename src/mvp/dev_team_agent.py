@@ -9,21 +9,22 @@ class DevTeam:
     Enhanced DevTeam class with persona tuning, agent memory/context, and workflow support.
     """
     def respond(self, user_input, context=None, agent_status=None, persona="default", memory=None):
-        from src.mvp.llm_router import route_llm_call
-        persona_prompt = {
-            "default": "You are the VERN Dev Team Agent. Analyze requirements, generate a code plan, and provide a code snippet or actionable steps.",
-            "architect": "You are a senior software architect. Design scalable, maintainable solutions and explain tradeoffs.",
-            "mentor": "You are a friendly coding mentor. Teach best practices and guide the user step-by-step.",
-            "reviewer": "You are a strict code reviewer. Point out flaws, suggest improvements, and enforce standards.",
-            "rapid": "You are a rapid prototyper. Deliver quick, working code with minimal boilerplate."
+        from mvp.llm_router import route_llm_call
+        from mvp.prompt_utils import build_prompt
+        persona_descriptions = {
+            "default": "Analyze requirements, generate a code plan, and provide a code snippet or actionable steps.",
+            "architect": "Design scalable, maintainable solutions and explain tradeoffs.",
+            "mentor": "Teach best practices and guide the user step-by-step.",
+            "reviewer": "Point out flaws, suggest improvements, and enforce standards.",
+            "rapid": "Deliver quick, working code with minimal boilerplate."
         }
-        prompt = (
-            persona_prompt.get(persona, persona_prompt["default"]) + "\n"
-            f"Request: {user_input}\n"
-            f"Context: {context}\n"
-            f"Agent Status: {agent_status}\n"
-            f"Persona: {persona}\n"
-            f"Memory: {memory}\n"
+        context = context or {}
+        context["persona_description"] = persona_descriptions.get(persona, persona_descriptions["default"])
+        prompt = build_prompt(
+            agent_name="dev_team",
+            task=user_input,
+            context=context,
+            persona=persona
         )
         response = route_llm_call(prompt, context=context, agent_status=agent_status, agent_name="dev_team")
         if hasattr(response, "__iter__") and not isinstance(response, str):
@@ -34,7 +35,7 @@ class DevTeam:
         # Alias for respond, for test compatibility
         return self.respond(user_input, context=context, agent_status=agent_status, persona=persona, memory=memory)
 
-from db.logger import log_action, log_message, log_gotcha
+from src.mvp.agent_utils import log_agent_action, log_agent_message, log_agent_exception, escalate_to_orchestrator
 
 def dev_team_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -42,7 +43,7 @@ def dev_team_respond(user_input, context=None, agent_status=None, persona="defau
     """
     agent_id = "dev_team"
     try:
-        log_action(agent_id, user_id, "dev_request", {
+        log_agent_action(agent_id, user_id, "dev_request", {
             "user_input": user_input,
             "context": context,
             "agent_status": agent_status,
@@ -50,24 +51,42 @@ def dev_team_respond(user_input, context=None, agent_status=None, persona="defau
             "memory": memory
         }, status="started")
 
-        from src.mvp.llm_router import route_llm_call
-        persona_prompt = {
-            "default": "You are the VERN Dev Team Agent. Analyze requirements, generate a code plan, and provide a code snippet or actionable steps.",
-            "architect": "You are a senior software architect. Design scalable, maintainable solutions and explain tradeoffs.",
-            "mentor": "You are a friendly coding mentor. Teach best practices and guide the user step-by-step.",
-            "reviewer": "You are a strict code reviewer. Point out flaws, suggest improvements, and enforce standards.",
-            "rapid": "You are a rapid prototyper. Deliver quick, working code with minimal boilerplate."
+        # Memory subsystem integration example
+        import requests
+        memory_api = "http://localhost:8000/memory"
+        # Add/update agent context as entity
+        entity_payload = {
+            "entity_id": user_id,
+            "properties": {
+                "last_request": user_input,
+                "persona": persona,
+                "agent_status": agent_status
+            }
         }
-        prompt = (
-            persona_prompt.get(persona, persona_prompt["default"]) + "\n"
-            f"Request: {user_input}\n"
-            f"Context: {context}\n"
-            f"Agent Status: {agent_status}\n"
-            f"Persona: {persona}\n"
-            f"Memory: {memory}\n"
+        try:
+            requests.post(f"{memory_api}/entity", json=entity_payload, timeout=2)
+        except Exception:
+            pass  # Ignore if memory API is not running
+
+        from mvp.llm_router import route_llm_call
+        from mvp.prompt_utils import build_prompt
+        persona_descriptions = {
+            "default": "Analyze requirements, generate a code plan, and provide a code snippet or actionable steps.",
+            "architect": "Design scalable, maintainable solutions and explain tradeoffs.",
+            "mentor": "Teach best practices and guide the user step-by-step.",
+            "reviewer": "Point out flaws, suggest improvements, and enforce standards.",
+            "rapid": "Deliver quick, working code with minimal boilerplate."
+        }
+        context = context or {}
+        context["persona_description"] = persona_descriptions.get(persona, persona_descriptions["default"])
+        prompt = build_prompt(
+            agent_name="dev_team",
+            task=user_input,
+            context=context,
+            persona=persona
         )
         response = route_llm_call(prompt, context=context, agent_status=agent_status, agent_name="dev_team")
-        log_action(agent_id, user_id, "llm_response", {
+        log_agent_action(agent_id, user_id, "llm_response", {
             "prompt": prompt,
             "response": str(response),
             "persona": persona,
@@ -76,19 +95,20 @@ def dev_team_respond(user_input, context=None, agent_status=None, persona="defau
         # If response is a generator, join its output
         if hasattr(response, "__iter__") and not isinstance(response, str):
             response = "".join(list(response))
-        # Patch: If backend is not configured, escalate to orchestrator for error handling
-        if "No backend configured" in response or "[Ollama error: No response received]" in response:
-            from src.mvp.orchestrator import orchestrator_respond
+        # Patch: If backend returns structured error, escalate to orchestrator for error handling
+        if isinstance(response, dict) and "error" in response:
+            from mvp.orchestrator import orchestrator_respond
             error_context = {
                 "user_input": user_input,
                 "context": context,
                 "agent_status": agent_status,
                 "persona": persona,
                 "memory": memory,
-                "error": response
+                "error": response.get("error"),
+                "error_code": response.get("code")
             }
             return orchestrator_respond(
-                f"Dev Team Agent encountered a backend error: {response}. Please escalate or suggest next steps.",
+                f"Dev Team Agent encountered a backend error: {response.get('error')} (code: {response.get('code')}). Please escalate or suggest next steps.",
                 error_context,
                 agent_status,
                 user_id
@@ -96,15 +116,14 @@ def dev_team_respond(user_input, context=None, agent_status=None, persona="defau
         return response
 
     except Exception as e:
-        log_message(agent_id, f"Error in dev_team_respond: {str(e)}", level="error", context={
+        log_agent_message(agent_id, f"Error in dev_team_respond: {str(e)}", level="error", context={
             "user_input": user_input,
             "context": context,
             "agent_status": agent_status,
             "persona": persona,
             "memory": memory
         })
-        log_gotcha(agent_id, f"Exception in dev_team_respond: {str(e)}", severity="error")
-        from src.mvp.orchestrator import orchestrator_respond
+        log_agent_exception(agent_id, f"Exception in dev_team_respond: {str(e)}", severity="error")
         error_context = {
             "user_input": user_input,
             "context": context,
@@ -113,7 +132,7 @@ def dev_team_respond(user_input, context=None, agent_status=None, persona="defau
             "memory": memory,
             "error": str(e)
         }
-        return orchestrator_respond(
+        return escalate_to_orchestrator(
             f"Dev Team Agent encountered an error: {str(e)}. Please escalate or suggest next steps.",
             error_context,
             agent_status,

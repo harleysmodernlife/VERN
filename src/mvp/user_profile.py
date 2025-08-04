@@ -73,7 +73,7 @@ def update_user_resonance(user_id: str, updates: dict, default_resonance: dict):
 init_user_profile_db()
 
 # Example usage:
-# from src.mvp.archetype_cluster import ArchetypeCluster
+# from mvp.archetype_cluster import ArchetypeCluster
 # cluster = ArchetypeCluster()
 # default_profile = cluster.default_user_profile()
 # save_user_profile("user123", default_profile)

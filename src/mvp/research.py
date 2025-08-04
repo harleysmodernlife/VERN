@@ -4,7 +4,7 @@ VERN Research Agent (Function-Based)
 Handles research, academic, and market queries for the MVP.
 """
 
-from db.logger import log_action, log_message, log_gotcha
+from src.db.logger import log_action, log_message, log_gotcha
 
 def research_respond(user_input, context=None, agent_status=None, persona="default", user_id="default_user", memory=None):
     """
@@ -20,7 +20,7 @@ def research_respond(user_input, context=None, agent_status=None, persona="defau
             "memory": memory
         }, status="started")
 
-        from mvp.llm_router import route_llm_call
+        from src.mvp.llm_router import route_llm_call
         persona_prompt = {
             "default": "You are the VERN Research Agent. Conduct research, analyze sources, and provide a concise, actionable summary.",
             "academic": "You are an academic researcher. Provide deep, well-cited answers and suggest further reading.",

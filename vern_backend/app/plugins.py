@@ -32,12 +32,15 @@ class PluginInvokeRequest(BaseModel):
 
 @router.post("/{plugin_name}/call")
 def call_plugin(plugin_name: str, req: PluginInvokeRequest = Body(...)):
+    from fastapi import HTTPException
     try:
         from src.mvp.plugin_tools import call_plugin_tool
         result = call_plugin_tool(plugin_name, *req.args, **req.kwargs)
         return {"result": result}
     except NotImplementedError:
         raise HTTPException(status_code=404, detail=f"Plugin tool '{plugin_name}' not implemented.")
+    except ConnectionError:
+        raise HTTPException(status_code=503, detail="MCP server is not running or unreachable.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -46,6 +49,20 @@ class PluginSubmission(BaseModel):
     description: str
     code: str
     author: str
+
+@router.post("/{plugin_name}/update")
+def update_plugin(plugin_name: str, submission: PluginSubmission = Body(...)):
+    # TODO: Implement update logic (e.g., replace code, validate, reload)
+    print(f"[PLUGIN UPDATE] {plugin_name} by {submission.author}")
+    # For now, just acknowledge
+    return {"status": "received", "message": f"Plugin '{plugin_name}' update received for review."}
+
+@router.post("/{plugin_name}/remove")
+def remove_plugin(plugin_name: str):
+    # TODO: Implement removal logic (e.g., delete from registry, unload)
+    print(f"[PLUGIN REMOVE] {plugin_name}")
+    # For now, just acknowledge
+    return {"status": "received", "message": f"Plugin '{plugin_name}' removal received for review."}
 
 @router.post("/submit")
 def submit_plugin(submission: PluginSubmission):

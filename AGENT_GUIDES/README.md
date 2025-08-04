@@ -1,7 +1,243 @@
 # Agent Guides
 
-## Agent Error Handling Protocol
+## Backend Selection & Resource Awareness
 
+- All agent backends (ASR, TTS, vision, LLM) are optional and configurable in `config/agent_backends.yaml`.
+- Heavy libraries (Whisper, Coqui, etc.) are NOT required. You can select lightweight or stub backends.
+- Agents check available resources before loading any backend, and fall back to stubs or lightweight alternatives if needed.
+- Example config for low-resource setup:
+  ```yaml
+  default_asr: espeak-asr
+  default_tts: espeak-tts
+  default_vision: tesseract
+  ```
+- No forced installs. Use only the models/APIs you already have.
+- See README.md for more details on backend options and resource requirements.
+
+
+This directory contains guides and reference docs for building, testing, and integrating agents and plugins in VERN.
+
+---
+
+## 🧠 Memory API (Knowledge Graph & Semantic Search)
+
+VERN exposes a memory subsystem for agents/plugins via FastAPI endpoints.  
+**Default is in-memory or file-based graph storage for resource-constrained setups.**  
+If Neo4j is available and configured, it will be used; otherwise, agents/plugins will fall back automatically.
+
+- Backend selection is controlled by the `VERN_MEMORY_BACKEND` environment variable (`memory` or `neo4j`).
+- Health checks and warnings are logged if Neo4j is referenced but not available.
+- Agents/plugins should always interact with the unified memory API, not directly with any backend.
+
+Endpoints:
+
+- `POST /memory/entity` — Add entity (`entity_id`, `properties`)
+- `GET /memory/entity/{entity_id}` — Get entity
+- `PUT /memory/entity/{entity_id}` — Update entity (`properties`)
+- `DELETE /memory/entity/{entity_id}` — Delete entity
+
+- `POST /memory/relationship` — Add relationship (`source_id`, `target_id`, `rel_type`, `properties`)
+- `GET /memory/relationship/{entity_id}` — Get relationships for entity
+
+- `POST /memory/event` — Add event (`entity_id`, `event_type`, `properties`)
+- `GET /memory/event/{entity_id}` — Get events for entity
+
+### Example: Add an entity
+
+```bash
+curl -X POST http://localhost:8000/memory/entity \
+  -H "Content-Type: application/json" \
+  -d '{"entity_id": "user_1", "properties": {"name": "Alice", "role": "admin"}}'
+```
+
+### Example: Add a relationship
+
+```bash
+curl -X POST http://localhost:8000/memory/relationship \
+  -H "Content-Type: application/json" \
+  -d '{"source_id": "user_1", "target_id": "project_42", "rel_type": "works_on"}'
+```
+
+### Example: Add an event
+
+```bash
+curl -X POST http://localhost:8000/memory/event \
+  -H "Content-Type: application/json" \
+  -d '{"entity_id": "user_1", "event_type": "login"}'
+```
+
+See `vern_backend/app/memory.py` for API details and usage patterns.
+
+---
+
+### 🧠 Vector Memory API (Semantic Search)
+
+---
+
+### 🧠 RAG API (Document Retrieval, Haystack)
+
+---
+
+### 🤖 Multi-Agent Orchestration API (Planner/Executor/Critic)
+
+---
+
+### 🔒 Privacy Agent API
+
+---
+
+### 🔗 Protocols: MCP/A2A, REST, gRPC
+
+---
+
+### 🖥️ Multimodal Agents: Voice & Vision
+
+- Voice Agent: ASR (speech-to-text) via `transcribe_audio`, TTS (text-to-speech) via `synthesize_speech`
+- Vision Agent: Image analysis via `analyze_image`, document OCR via `extract_text_from_document`
+
+#### Example: Voice agent
+
+```python
+from src/mvp.voice_agent import transcribe_audio, synthesize_speech
+text = transcribe_audio(b"...")  # returns "Transcribed text (stub)"
+audio = synthesize_speech("Hello world")  # returns b"audio-bytes-stub"
+```
+
+#### Example: Vision agent
+
+```python
+from src/mvp.vision_agent import analyze_image, extract_text_from_document
+result = analyze_image(b"...")  # returns {"caption": "...", "labels": [...]}
+text = extract_text_from_document(b"...")  # returns "Extracted text (stub)"
+```
+
+#### Visual Workflow Scripting
+
+- Visual workflow editor (Node-RED/n8n style) planned for future release.
+- Agents, plugins, and multimodal steps will be scriptable via drag-and-drop UI.
+
+See `src/mvp/voice_agent.py` and `src/mvp/vision_agent.py` for agent API details and extension patterns.
+
+---
+
+- MCP/A2A: Inter-agent and plugin messaging protocol (`handle_mcp_message`)
+- REST: All FastAPI endpoints are RESTful and documented above
+- gRPC: Agent/plugin interoperability via `handle_grpc_request` (stub)
+
+#### Example: MCP message
+
+```python
+from src.mvp.protocols import handle_mcp_message
+resp = handle_mcp_message({"type": "call_tool", "tool": "weather", "params": {"location": "Austin"}})
+print(resp)
+```
+
+#### Example: gRPC request
+
+```python
+from src.mvp.protocols import handle_grpc_request
+resp = handle_grpc_request({"method": "AgentService/Call", "payload": {"agent": "planner"}})
+print(resp)
+```
+
+See `src/mvp/protocols.py` for protocol handler details and extension patterns.
+
+---
+
+- `POST /privacy/check_permission` — Check permission for sensitive actions (`action`, `user_id`, `data`)
+- `POST /privacy/sanitize` — Sanitize sensitive data (`data`)
+- `GET /privacy/audit_log` — Retrieve audit log of agent actions
+
+#### Example: Check permission
+
+```bash
+curl -X POST http://localhost:8000/privacy/check_permission \
+  -H "Content-Type: application/json" \
+  -d '{"action": "send_email", "user_id": "user_1", "data": {"email": "alice@example.com", "ssn": "123-45-6789"}}'
+```
+
+#### Example: Sanitize data
+
+```bash
+curl -X POST http://localhost:8000/privacy/sanitize \
+  -H "Content-Type: application/json" \
+  -d '{"data": {"email": "alice@example.com", "ssn": "123-45-6789", "credit_card": "4111111111111111"}}'
+```
+
+#### Example: Get audit log
+
+```bash
+curl http://localhost:8000/privacy/audit_log
+```
+
+See `src/mvp/privacy_agent.py` for privacy agent details and extension patterns.
+
+---
+
+- `POST /agents/orchestrate` — Orchestrate a task using planner/executor/critic agents (`task`, optional `context`)
+
+#### Example: Orchestrate a workflow
+
+```bash
+curl -X POST http://localhost:8000/agents/orchestrate \
+  -H "Content-Type: application/json" \
+  -d '{"task": "Plan a trip", "context": {}}'
+```
+
+Returns:
+```json
+{
+  "steps": ["Step for: Plan a trip"],
+  "results": ["Executed: Step for: Plan a trip"],
+  "critiques": ["Critique: Executed: Step for: Plan a trip"]
+}
+```
+
+See `src/mvp/agent_registry.py` for orchestration details and agent role templates.
+
+---
+
+- `POST /rag/add` — Add documents to RAG memory (`docs`, optional `meta`)
+- `GET /rag/query` — Query RAG memory (`query`, optional `top_k`)
+
+#### Example: Add documents
+
+```bash
+curl -X POST http://localhost:8000/rag/add \
+  -H "Content-Type: application/json" \
+  -d '{"docs": ["VERN supports RAG", "Agents use Haystack"], "meta": [{"type": "info"}, {"type": "tech"}]}'
+```
+
+#### Example: Query RAG memory
+
+```bash
+curl "http://localhost:8000/rag/query?query=RAG%20support&top_k=2"
+```
+
+See `vern_backend/app/rag.py` for API details and usage patterns.
+
+---
+
+- `POST /vector_memory/add` — Add documents to semantic memory (`docs`, optional `metadata`)
+- `GET /vector_memory/query` — Query semantic memory (`text`, optional `top_k`)
+
+#### Example: Add documents
+
+```bash
+curl -X POST http://localhost:8000/vector_memory/add \
+  -H "Content-Type: application/json" \
+  -d '{"docs": ["VERN is modular", "Agents collaborate"], "metadata": [{"type": "info"}, {"type": "team"}]}'
+```
+
+#### Example: Query semantic memory
+
+```bash
+curl "http://localhost:8000/vector_memory/query?text=collaborate&top_k=3"
+```
+
+See `vern_backend/app/vector_memory.py` for API details and usage patterns.
+
+---
 All agents must escalate errors to the orchestrator for robust fallback. See src/mvp/health_wellness.py and src/mvp/knowledge_broker.py for templates. Document escalation logic in your agent guide.
 
 ## Diagram/Image Workflow for Docs
@@ -29,6 +265,32 @@ This workflow ensures visuals are accessible, editable, and convertible for prod
 
 Welcome to the VERN Agent Guides!  
 This directory contains documentation and prompts for each agent cluster, as well as general onboarding and extension instructions.
+
+---
+
+## Import Hygiene & Troubleshooting
+
+- All Python imports in VERN use absolute paths from the project root (e.g., `from src.db.logger import ...`, `from src.mvp.llm_router import ...`).
+- Relative imports (e.g., `from db.logger import ...` or `from mvp.llm_router import ...`) are not supported and will cause import errors.
+- Before starting the backend, run the import self-test script to check for broken imports:
+  ```
+  python scripts/check_imports.py
+  ```
+- If you see `[ERROR]` lines, fix the import paths to use the `src.` prefix and match the project structure.
+- If you see `ModuleNotFoundError` or `ImportError`, ensure you have installed all dependencies:
+  ```
+  pip install -r requirements.txt
+  ```
+- For more troubleshooting, see the README.md and QUICKSTART.md.
+
+---
+
+## Dashboard & Onboarding Test Coverage (2025)
+
+- Frontend integration tests now cover dashboard, onboarding, help, feedback, and notification panels.
+- Onboarding checklist logic is robust and tested.
+- All documentation (README, QUICKSTART, TASKS_AND_TODO) is synced after each sprint.
+- See those docs for details on UI/UX, onboarding, and test coverage.
 
 ---
 
@@ -270,6 +532,21 @@ If you are a new agent (AI or human) or need to re-orient:
   - Document how context is passed and managed.
   - Describe fallback/error handling for LLM failures.
   - Note how tool-calling is triggered from LLM plans (if implemented).
+
+## Dashboard Panels & Onboarding
+
+- **Config Editor Panel:** Edit `.env` and YAML config files, with validation and error feedback.
+- **Workflow Editor Panel:** Build, visualize, and run multi-agent workflows.
+- **Plugin Marketplace Panel:** Enable, disable, update, and remove plugins; submit new plugins for review.
+- **Onboarding Panel:** Step-by-step checklist, persona/profile setup, tooltips, and direct links to docs/help.
+- **Help Panel:** Troubleshooting steps, FAQ, and links to docs/videos for non-coders.
+- **Feedback Panel:** Submit feedback and bug reports.
+- **Notification Panel:** Real-time notifications and error alerts.
+
+**Troubleshooting:**  
+- Use the Help panel for common issues and FAQ.
+- For onboarding, follow the checklist and use tooltips/links for guidance.
+- If stuck, submit feedback or join the community for support.
 
 ## See Also
 

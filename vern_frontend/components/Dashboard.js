@@ -1,6 +1,12 @@
 // vern_frontend/components/Dashboard.js
 import React, { useState, useEffect } from "react";
 import { IntlProvider, FormattedMessage } from "react-intl";
+import ConfigEditorPanel from "./ConfigEditorPanel";
+import WorkflowEditorPanel from "./WorkflowEditorPanel";
+import PluginMarketplacePanel from "./PluginMarketplacePanel";
+import HelpPanel from "./HelpPanel";
+import OnboardingPanel from "./OnboardingPanel";
+import IntegrationManagerPanel from "./IntegrationManagerPanel";
 
 const messages = {
   en: {
@@ -24,7 +30,18 @@ export default function Dashboard() {
 
   return (
     <IntlProvider locale={locale} messages={messages[locale]}>
-      <div style={{ border: "1px solid #ccc", padding: "2rem", borderRadius: "8px" }}>
+      <div
+        style={{
+          border: "2px solid #333",
+          padding: "2rem",
+          borderRadius: "12px",
+          background: "#fff",
+          maxWidth: "900px",
+          margin: "0 auto"
+        }}
+        aria-label="VERN Dashboard"
+        tabIndex={0}
+      >
         <div style={{ marginBottom: "1rem" }}>
           <label htmlFor="lang-select" style={{ marginRight: "0.5rem" }}>
             <FormattedMessage id="language" defaultMessage="Language" />:
@@ -80,6 +97,17 @@ export default function Dashboard() {
         </div>
         {/* Example image/icon with alt text for future use */}
         {/* <img src="/static/vern_logo.png" alt="VERN project logo" style={{marginTop: "1rem", width: 80}} /> */}
+        <ConfigEditorPanel />
+        <WorkflowEditorPanel />
+        <PluginMarketplacePanel />
+        <IntegrationManagerPanel />
+        <OnboardingPanel />
+        <HelpPanel />
+        <div style={{ marginTop: "2rem", fontSize: "0.9em", color: "#666" }}>
+          <span aria-label="Keyboard navigation tip">
+            <b>Tip:</b> Use <kbd>Tab</kbd> and <kbd>Shift+Tab</kbd> to navigate between panels and controls.
+          </span>
+        </div>
       </div>
     </IntlProvider>
   );
