@@ -1,6 +1,6 @@
 VERN Architecture Diagram
 
-A real architecture diagram is now available as SVG.  
+A real architecture diagram is now available as SVG.
 To update or view visually, import the SVG below into draw.io, Lucidchart, or Excalidraw.
 
 File: docs/vern_architecture.svg
@@ -13,6 +13,11 @@ To update:
 
 ```svg
 <svg width="900" height="700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555" />
+    </marker>
+  </defs>
   <rect x="20" y="20" width="860" height="660" fill="#f9f9f9" stroke="#bbb" stroke-width="2"/>
   <rect x="60" y="40" width="120" height="40" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
   <text x="120" y="65" font-size="16" text-anchor="middle" fill="#1976d2">User (CLI/GUI/Dashboard)</text>
@@ -42,6 +47,26 @@ To update:
   <text x="460" y="615" font-size="14" text-anchor="middle" fill="#00897b">
     Emergent Agent, Knowledge Broker, id10t Monitor (cross-cutting, audit, optimization)
   </text>
+  
+  <!-- New Helper Components -->
+  <rect x="320" y="110" width="200" height="40" fill="#ffebee" stroke="#c62828" stroke-width="2"/>
+  <text x="420" y="135" font-size="14" text-anchor="middle" fill="#c62828">Global Exception Handler</text>
+  
+  <rect x="320" y="170" width="200" height="40" fill="#e8eaf6" stroke="#3949ab" stroke-width="2"/>
+  <text x="420" y="195" font-size="14" text-anchor="middle" fill="#3949ab">get_sqlite_path()</text>
+  
+  <rect x="320" y="50" width="200" height="40" fill="#e0f7fa" stroke="#00838f" stroke-width="2"/>
+  <text x="420" y="75" font-size="14" text-anchor="middle" fill="#00838f">getApiBase()</text>
+
+  <!-- Flows -->
+  <path d="M 260 140 C 300 140, 300 135, 320 135" stroke="#c62828" stroke-width="2" fill="none" stroke-dasharray="5,5" marker-end="url(#arrow)"/>
+  <text x="290" y="125" font-size="12" fill="#c62828">API Request</text>
+  
+  <path d="M 260 235 C 300 235, 300 195, 320 195" stroke="#3949ab" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <text x="290" y="220" font-size="12" fill="#3949ab">DB Call</text>
+  
+  <path d="M 260 140 C 280 100, 300 75, 320 75" stroke="#00838f" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <text x="290" y="95" font-size="12" fill="#00838f">Backend Connect</text>
 </svg>
 ```
 
@@ -114,7 +139,7 @@ To edit visually, copy each SVG into draw.io, Lucidchart, or Excalidraw.
   <rect x="460" y="80" width="180" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
   <text x="550" y="105" font-size="14" text-anchor="middle" fill="#388e3c">Backend API</text>
   <rect x="660" y="80" width="180" height="40" fill="#f3e5f5" stroke="#8e24aa" stroke-width="2"/>
-  <text x="750" y="105" font-size="14" text-anchor="middle" fill="#8e24aa">Profile/Checklist</text>
+  <text x="750" y="105" font-size="14" text-anchor="middle" fill="#f3e5f5">Profile/Checklist</text>
   <polyline points="240,100 260,100" stroke="#888" stroke-width="2" fill="none"/>
   <polyline points="440,100 460,100" stroke="#888" stroke-width="2" fill="none"/>
   <polyline points="640,100 660,100" stroke="#888" stroke-width="2" fill="none"/>
@@ -141,4 +166,3 @@ To edit visually, copy each SVG into draw.io, Lucidchart, or Excalidraw.
   <polyline points="440,100 460,100" stroke="#888" stroke-width="2" fill="none"/>
   <polyline points="640,100 660,100" stroke="#888" stroke-width="2" fill="none"/>
 </svg>
-```

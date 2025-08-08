@@ -15,7 +15,7 @@ class VectorMemory:
     def __init__(self, path: str = "sentence-transformers/all-MiniLM-L6-v2"):
         self.embeddings = Embeddings({"path": path})
 
-    def add_documents(self, docs: List[str], metadata: List[Dict[str, Any]] = None):
+    def add_documents(self, docs: List[str], metadata: List[Dict[str, Any]] | None = None):
         # metadata is optional, can be used for filtering/search
         if metadata is None:
             metadata = [{} for _ in docs]

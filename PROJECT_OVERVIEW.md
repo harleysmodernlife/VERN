@@ -2,7 +2,17 @@
 
 ## Architecture
 
-VERN is a modular, agent-based system designed for adaptability, transparency, and teamwork. The architecture is organized into clusters, monitors, and shared services:
+VERN is a modular, agent-based system designed for adaptability, transparency, and teamwork. The architecture is organized into clusters, monitors, and shared services.
+
+### Core Architectural Patterns
+
+To improve stability and maintainability, VERN has adopted several core architectural patterns that ensure consistency and predictability across the system.
+
+*   **Standardized Error Envelope**: All API errors return a consistent JSON structure (`{ "ok": false, "error_code": "...", "message": "..." }`). This makes error handling on the frontend predictable and robust, as developers can rely on a single format for any failed request. By standardizing how errors are communicated, the system becomes more resilient, as frontend components can implement a unified error-handling strategy, reducing redundant code and simplifying debugging. See `vern_backend/app/errors.py` for implementation.
+
+*   **Centralized Database Path Helper**: The database connection path is managed by a single utility function (`get_sqlite_path` in `vern_backend/app/db_path.py`). Configuration is handled via the `SQLITE_DB_PATH` environment variable. This centralization prevents configuration drift and makes it easy to locate and manage the database file. This approach enhances scalability by ensuring that all parts of the application, regardless of where they are deployed, can reliably locate the database, simplifying environment setup and reducing the risk of misconfiguration.
+
+*   **Unified Frontend API Base URL**: The frontend uses a single utility (`getApiBase` in `vern_frontend/lib/apiBase.js`) to determine the backend API's base URL. This utility checks for a global variable, then an environment variable, and finally falls back to a relative path. This ensures that the frontend can reliably connect to the backend across different deployment environments (local, staging, production) without code changes. This flexibility is key to a scalable architecture, allowing the frontend to be deployed independently of the backend and easily reconfigured to point to different API endpoints.
 
 ### Core Components
 

@@ -17,7 +17,7 @@ import os
 from src.mvp import finance_resource
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from mcp.server.fastmcp import FastMCP
+from src.mcp.server.fastmcp import FastMCP
 
 # Import agent clusters for tool integration
 from src.mvp.health_wellness import health_respond

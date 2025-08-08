@@ -8,7 +8,7 @@ Supports discovery, metadata, enable/disable, and admin controls.
 import inspect
 import json
 import os
-from mcp.server.fastmcp import FastMCP
+from src.mcp.server.fastmcp import FastMCP
 import src.mvp.mcp_server as mcp_server
 
 REGISTRY_STATE_FILE = "plugin_registry_state.json"

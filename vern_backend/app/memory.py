@@ -22,25 +22,6 @@ class MemoryGraph:
         self.relationships = []
         self.events = []
 
-def get_memory_backend():
-    """
-    Selects the memory backend based on environment/config.
-    Defaults to in-memory. Logs a warning if Neo4j is referenced but not available.
-    """
-    backend = os.getenv("VERN_MEMORY_BACKEND", "memory")
-    if backend == "neo4j":
-        try:
-            from vern_backend.app.neo4j_memory import Neo4jMemory
-            logging.warning("Neo4j backend selected. Ensure Neo4j is running and configured.")
-            return Neo4jMemory(
-                os.getenv("NEO4J_URI", "bolt://localhost:7687"),
-                os.getenv("NEO4J_USER", "neo4j"),
-                os.getenv("NEO4J_PASSWORD", "password")
-            )
-        except ImportError:
-            logging.error("Neo4j backend requested but neo4j driver not installed. Falling back to in-memory.")
-    return MemoryGraph()
-
     def add_entity(self, entity_id: str, properties: Dict[str, Any]) -> None:
         self.entities[entity_id] = properties
 
@@ -76,6 +57,26 @@ def get_memory_backend():
 
     def get_events(self, entity_id: str) -> List[Dict[str, Any]]:
         return [event for event in self.events if event["entity"] == entity_id]
+
+
+def get_memory_backend():
+    """
+    Selects the memory backend based on environment/config.
+    Defaults to in-memory. Logs a warning if Neo4j is referenced but not available.
+    """
+    backend = os.getenv("VERN_MEMORY_BACKEND", "memory")
+    if backend == "neo4j":
+        try:
+            from vern_backend.app.neo4j_memory import Neo4jMemory
+            logging.warning("Neo4j backend selected. Ensure Neo4j is running and configured.")
+            return Neo4jMemory(
+                os.getenv("NEO4J_URI", "bolt://localhost:7687"),
+                os.getenv("NEO4J_USER", "neo4j"),
+                os.getenv("NEO4J_PASSWORD", "password")
+            )
+        except ImportError:
+            logging.error("Neo4j backend requested but neo4j driver not installed. Falling back to in-memory.")
+    return MemoryGraph()
 
 # Example usage:
 # memory = MemoryGraph()

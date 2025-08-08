@@ -1,5 +1,6 @@
 // vern_frontend/components/Dashboard.js
 import React, { useState, useEffect } from "react";
+import { getApiBase, joinApi } from "../lib/apiBase";
 import { IntlProvider, FormattedMessage } from "react-intl";
 import ConfigEditorPanel from "./ConfigEditorPanel";
 import WorkflowEditorPanel from "./WorkflowEditorPanel";
@@ -22,11 +23,34 @@ const messages = {
 };
 
 export default function Dashboard() {
-  const [locale, setLocale] = useState(() => localStorage.getItem("vern_lang") || "en");
+  // Guard against SSR for localStorage
+  const isBrowser = typeof window !== "undefined";
+  const [locale, setLocale] = useState(() => {
+    if (isBrowser) {
+      try { return localStorage.getItem("vern_lang") || "en"; } catch { return "en"; }
+    }
+    return "en";
+  });
 
   useEffect(() => {
-    localStorage.setItem("vern_lang", locale);
-  }, [locale]);
+    if (isBrowser) {
+      try { localStorage.setItem("vern_lang", locale); } catch {}
+    }
+  }, [locale, isBrowser]);
+
+  // Example: fetch cluster status using unified API base
+  useEffect(() => {
+    const url = joinApi("/agents/status");
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        // no-op store; future: show in a panel
+        // console.debug("Cluster status", data);
+      })
+      .catch(() => {
+        // swallow for now; dashboard is placeholder UI
+      });
+  }, []);
 
   return (
     <IntlProvider locale={locale} messages={messages[locale]}>
@@ -67,7 +91,7 @@ export default function Dashboard() {
         <p>
           <FormattedMessage id="panelDesc" defaultMessage="Live agent/cluster status, plugin management, and workflow visualization." />
         </p>
-        {/* Live Agent/Cluster Status Panel */}
+        {/* Live Agent/Cluster Status Panel (polls registry, container-aware base) */}
         <AgentClusterStatus locale={locale} />
         {/* Accessibility & i18n Status Panel */}
         <div
@@ -115,24 +139,29 @@ export default function Dashboard() {
 
 // Live agent/cluster status component
 function AgentClusterStatus({ locale }) {
+  const isBrowser = typeof window !== "undefined";
   const [status, setStatus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
-    fetch("/api/agents/status")
-      .then(res => res.json())
-      .then(data => {
-        setStatus(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message || "Failed to fetch agent status.");
-        setLoading(false);
-      });
-  }, []);
+    if (!isBrowser) return;
+    let cancelled = false;
 
+    const fetchOnce = () => {
+      setLoading(true);
+      fetch(joinApi("/agents/status"))
+        .then(res => res.json())
+        .then(data => { if (!cancelled) { setStatus(data); setLoading(false); } })
+        .catch(err => { if (!cancelled) { setError(err.message || "Failed to fetch agent status."); setLoading(false); } });
+    };
+
+    fetchOnce();
+    const id = setInterval(fetchOnce, 5000); // poll every 5s
+    return () => { cancelled = true; clearInterval(id); };
+  }, [isBrowser]);
+
+  if (!isBrowser) return <div>Loading...</div>;
   if (loading) return <div>Loading agent/cluster status...</div>;
   if (error) return <div style={{ color: "red" }}>Error: {error}</div>;
   if (!status.length) return <div>No agent/cluster status available.</div>;

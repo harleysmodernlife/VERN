@@ -4,9 +4,10 @@ VERN Backend - Feedback API
 This module defines endpoints for capturing, storing, and aggregating user feedback.
 """
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request, status
 from pydantic import BaseModel
-import statistics
+
+from vern_backend.app.errors import error_response
 
 router = APIRouter()
 
@@ -28,7 +29,7 @@ async def submit_feedback(feedback: Feedback, request: Request):
         print(f"Feedback received from {request.client.host}: {feedback.feedback}")
         return {"status": "success", "message": "Feedback received"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return error_response("UNKNOWN_ERROR", status.HTTP_500_INTERNAL_SERVER_ERROR, "An unknown error occurred.", request, {"error": str(e)})
 
 @router.get("/feedback/aggregate")
 async def aggregate_feedback():

@@ -1,5 +1,6 @@
 // vern_frontend/components/AgentClusterViz.js
 import React, { useState, useEffect } from "react";
+import { joinApi } from "../lib/apiBase";
 import { IntlProvider, FormattedMessage } from "react-intl";
 
 const messages = {
@@ -19,12 +20,36 @@ const messages = {
   }
 };
 
+// Safe browser check for SSR
+const isBrowser = typeof window !== "undefined";
+
 export default function AgentClusterViz() {
-  const [locale, setLocale] = useState(() => localStorage.getItem("vern_lang") || "en");
+  const [locale, setLocale] = useState(() => {
+    if (isBrowser) {
+      try { return localStorage.getItem("vern_lang") || "en"; } catch { return "en"; }
+    }
+    return "en";
+  });
 
   useEffect(() => {
-    localStorage.setItem("vern_lang", locale);
+    if (isBrowser) {
+      try { localStorage.setItem("vern_lang", locale); } catch {}
+    }
   }, [locale]);
+
+  // Fetch cluster status using unified API base
+  useEffect(() => {
+    const url = joinApi("/agents/status");
+    fetch(url)
+      .then(res => res.json())
+      .then((data) => {
+        // In future we can visualize; for now, noop to avoid unused var warnings
+        // console.debug("Cluster status", data);
+      })
+      .catch(() => {
+        // swallow network errors in placeholder UI
+      });
+  }, []);
 
   return (
     <IntlProvider locale={locale} messages={messages[locale]}>
@@ -59,5 +84,53 @@ export default function AgentClusterViz() {
         <NetworkGraph />
       </div>
     </IntlProvider>
+  );
+}
+
+// Define LiveClusterStatus to avoid ReferenceError
+function LiveClusterStatus({ locale }) {
+  const [status, setStatus] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!isBrowser) return;
+    let cancelled = false;
+
+    const fetchOnce = () => {
+      setLoading(true);
+      fetch(joinApi("/agents/status"))
+        .then(res => res.json())
+        .then(data => { if (!cancelled) { setStatus(data); setLoading(false); } })
+        .catch(err => { if (!cancelled) { setError(err.message || "Failed to fetch status."); setLoading(false); } });
+    };
+
+    fetchOnce();
+    const id = setInterval(fetchOnce, 5000); // poll every 5s
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  if (!isBrowser) return <div>Loading...</div>;
+  if (loading) return <div>Loading cluster status...</div>;
+  if (error) return <div style={{ color: "red" }}>Error: {error}</div>;
+  if (!status.length) return <div>No cluster status available.</div>;
+
+  return (
+    <div style={{ marginTop: "1rem" }}>
+      <ul>
+        {status.map((agent, i) => (
+          <li key={i}><strong>{agent.name}</strong> ({agent.cluster}) - {agent.status}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Minimal placeholder network graph to avoid ReferenceError
+function NetworkGraph() {
+  return (
+    <div style={{ marginTop: "1rem", padding: "1rem", border: "1px dashed #aaa" }}>
+      <em>Network graph placeholder</em>
+    </div>
   );
 }

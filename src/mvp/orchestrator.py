@@ -118,40 +118,49 @@ def list_workflows():
     """
     return WORKFLOWS
 
-def run_workflow(name, initial_input=None, user_id="default_user"):
+async def run_workflow(name, initial_input=None, user_id="default_user"):
     """
-    Execute a workflow by chaining agent calls.
+    Execute a workflow by chaining agent calls. This is now async.
     Args:
         name: Workflow name.
         initial_input: Optional input for the first agent.
         user_id: User ID for logging.
     Returns:
-        Aggregated output from all agents.
+        Aggregated output from all agents as a JSON-serializable list.
     """
     steps = WORKFLOWS.get(name)
     if not steps:
         return f"Workflow '{name}' not found."
+
     output = initial_input
     results = []
     for idx, step in enumerate(steps):
         agent = step.get("agent")
         agent_input = step.get("input", output)
-        # Example: route to agent function by name (stub/demo)
+        
         try:
+            # Dynamically import and call the agent's respond function
+            # This is a simplified example; a real implementation would use a registry
             if agent == "research":
                 from src.mvp.research import research_respond
-                result = research_respond(agent_input, user_id=user_id)
+                result_maybe_async = research_respond(agent_input, user_id=user_id)
             elif agent == "finance":
                 from src.mvp.finance_resource import finance_respond
-                result = finance_respond(agent_input, user_id=user_id)
+                result_maybe_async = finance_respond(agent_input, user_id=user_id)
             elif agent == "health":
                 from src.mvp.health_wellness import health_respond
-                result = health_respond(agent_input, user_id=user_id)
+                result_maybe_async = health_respond(agent_input, user_id=user_id)
             else:
-                result = f"Agent '{agent}' not implemented."
+                result_maybe_async = f"Agent '{agent}' not implemented."
+
+            # Normalize the result here
+            from vern_backend.app.agents import _normalize_result
+            result = await _normalize_result(result_maybe_async)
+            
             output = result
-            results.append({ "step": idx+1, "agent": agent, "output": result })
+            results.append({"step": idx + 1, "agent": agent, "output": result})
         except Exception as e:
-            results.append({ "step": idx+1, "agent": agent, "error": str(e) })
+            results.append({"step": idx + 1, "agent": agent, "error": str(e)})
             break
+            
     return results

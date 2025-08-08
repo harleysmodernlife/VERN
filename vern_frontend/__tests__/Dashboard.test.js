@@ -5,7 +5,7 @@ import Dashboard from "../components/Dashboard";
 
 test("renders dashboard panels and onboarding/help", () => {
   render(<Dashboard />);
-  expect(screen.getByText(/Config Editor/i)).toBeInTheDocument();
+  expect(screen.getAllByText(/Config Editor/i)[0]).toBeInTheDocument();
   // Use getAllByText for ambiguous matches
   expect(screen.getAllByText(/Workflow Editor/i)[0]).toBeInTheDocument();
   expect(screen.getAllByText(/Plugin Marketplace/i)[0]).toBeInTheDocument();

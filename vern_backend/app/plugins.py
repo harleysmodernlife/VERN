@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Body, status, Request
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/plugins", tags=["plugins"])
@@ -9,7 +9,7 @@ class PluginInfo(BaseModel):
     enabled: bool = True
 
 from src.mvp.plugin_registry import get_all_mcp_tools, set_tool_enabled
-from fastapi import HTTPException, Body
+from vern_backend.app.errors import PluginInvalidError, error_response
 
 @router.get("/", response_model=list[PluginInfo])
 def list_plugins():
@@ -31,18 +31,19 @@ class PluginInvokeRequest(BaseModel):
     kwargs: dict = {}
 
 @router.post("/{plugin_name}/call")
-def call_plugin(plugin_name: str, req: PluginInvokeRequest = Body(...)):
-    from fastapi import HTTPException
+def call_plugin(plugin_name: str, req: PluginInvokeRequest = Body(...), request: Request = None):
+    all_tools = [tool["name"] for tool in get_all_mcp_tools()]
+    if plugin_name not in all_tools:
+        raise PluginInvalidError(f"Plugin '{plugin_name}' not found.")
+
     try:
         from src.mvp.plugin_tools import call_plugin_tool
         result = call_plugin_tool(plugin_name, *req.args, **req.kwargs)
         return {"result": result}
-    except NotImplementedError:
-        raise HTTPException(status_code=404, detail=f"Plugin tool '{plugin_name}' not implemented.")
     except ConnectionError:
-        raise HTTPException(status_code=503, detail="MCP server is not running or unreachable.")
+        return error_response("INTEGRATION_UNAVAILABLE", status.HTTP_503_SERVICE_UNAVAILABLE, "MCP server is not running or unreachable.", request)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return error_response("INTEGRATION_ERROR", status.HTTP_502_BAD_GATEWAY, str(e), request)
 
 class PluginSubmission(BaseModel):
     name: str

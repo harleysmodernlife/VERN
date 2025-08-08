@@ -23,6 +23,17 @@ def test_vector_memory_search():
     results = vm.query("collaborate", top_k=2)
     assert len(results) > 0
 
+import socket
+import pytest
+
+def _port_open(host: str, port: int, timeout: float = 0.5) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+@pytest.mark.skipif(not _port_open("localhost", 7687), reason="Neo4j not running on localhost:7687")
 def test_neo4j_memory_crud():
     # Requires running Neo4j server at bolt://localhost:7687
     neo = Neo4jMemory("bolt://localhost:7687", "neo4j", "password")

@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request, status
 from pydantic import BaseModel
-from typing import Dict, Optional
+from typing import Dict
+
+from vern_backend.app.errors import error_response
 
 router = APIRouter()
 
@@ -59,9 +61,9 @@ def list_integrations():
     ]
 
 @router.get("/integrations/{provider}/status")
-def get_integration_status(provider: str):
+def get_integration_status(provider: str, request: Request):
     if provider not in INTEGRATIONS:
-        raise HTTPException(status_code=404, detail="Provider not found")
+        return error_response("NOT_FOUND", status.HTTP_404_NOT_FOUND, "Provider not found", request)
     return {
         "provider": provider,
         "configured": INTEGRATIONS[provider]["configured"],
@@ -69,9 +71,9 @@ def get_integration_status(provider: str):
     }
 
 @router.post("/integrations/{provider}/configure")
-def configure_integration(provider: str, cfg: IntegrationConfig):
+def configure_integration(provider: str, cfg: IntegrationConfig, request: Request):
     if provider not in INTEGRATIONS:
-        raise HTTPException(status_code=404, detail="Provider not found")
+        return error_response("NOT_FOUND", status.HTTP_404_NOT_FOUND, "Provider not found", request)
     # Save config (in-memory for now; persist in DB or file for production)
     INTEGRATIONS[provider]["config"] = cfg.config
     # Mark as configured if all required keys are present
