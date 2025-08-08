@@ -2,9 +2,11 @@ from fastapi import APIRouter, Body, Request
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from vern_backend.app.memory import MemoryGraph
+from vern_backend.app.vector_memory import VectorMemory
 from vern_backend.app.registry_service import registry, AgentRecord
 
 memory = MemoryGraph()
+vector_memory = VectorMemory()
 
 # Provide a safe shim for get_events to avoid AttributeError in minimal slice
 if not hasattr(memory, "get_events"):
@@ -398,12 +400,10 @@ def agent_cluster_status():
     # Fallback: if empty, provide the previous minimal defaults
     if not recs:
         status_list = [
-            {"name": "research", "cluster": "Research", "status": "online"},
-            {"name": "finance", "cluster": "Finance", "status": "online"},
-            {"name": "health", "cluster": "Health", "status": "online"},
             {"name": "admin", "cluster": "Admin", "status": "online"},
-            {"name": "emergent", "cluster": "Emergent", "status": "online"},
-            {"name": "orchestrator", "cluster": "Orchestrator", "status": "online"},
+            {"name": "research", "cluster": "Research", "status": "online"},
+            {"name": "dev_team", "cluster": "Dev Team", "status": "online"},
+            {"name": "health", "cluster": "Health", "status": "online"},
         ]
         return JSONResponse(content=status_list)
     return JSONResponse(content=[AgentRegistryResponse.from_record(r) for r in recs])

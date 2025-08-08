@@ -1,6 +1,16 @@
 from fastapi import APIRouter, Body, status, Request
 from pydantic import BaseModel
 
+"""
+VERN Backend Plugin API
+----------------------
+API endpoints for plugin management, invocation, and registry.
+
+Scaffolding for:
+- Admin review workflow (TODO: implement approval and review system)
+- Automated static analysis (TODO: add code analysis hooks)
+"""
+
 router = APIRouter(prefix="/plugins", tags=["plugins"])
 
 class PluginInfo(BaseModel):
@@ -38,7 +48,9 @@ def call_plugin(plugin_name: str, req: PluginInvokeRequest = Body(...), request:
 
     try:
         from src.mvp.plugin_tools import call_plugin_tool
-        result = call_plugin_tool(plugin_name, *req.args, **req.kwargs)
+        # Extract user from request.state (assumes authentication middleware sets request.state.user)
+        authorized_user = getattr(request.state, "user", None)
+        result = call_plugin_tool(plugin_name, *req.args, authorized_user=authorized_user, **req.kwargs)
         return {"result": result}
     except ConnectionError:
         return error_response("INTEGRATION_UNAVAILABLE", status.HTTP_503_SERVICE_UNAVAILABLE, "MCP server is not running or unreachable.", request)
@@ -54,6 +66,8 @@ class PluginSubmission(BaseModel):
 @router.post("/{plugin_name}/update")
 def update_plugin(plugin_name: str, submission: PluginSubmission = Body(...)):
     # TODO: Implement update logic (e.g., replace code, validate, reload)
+    # TODO: Integrate with admin review workflow (approval required)
+    # TODO: Add static analysis for submitted code
     print(f"[PLUGIN UPDATE] {plugin_name} by {submission.author}")
     # For now, just acknowledge
     return {"status": "received", "message": f"Plugin '{plugin_name}' update received for review."}
@@ -61,6 +75,7 @@ def update_plugin(plugin_name: str, submission: PluginSubmission = Body(...)):
 @router.post("/{plugin_name}/remove")
 def remove_plugin(plugin_name: str):
     # TODO: Implement removal logic (e.g., delete from registry, unload)
+    # TODO: Integrate with admin review workflow (approval required)
     print(f"[PLUGIN REMOVE] {plugin_name}")
     # For now, just acknowledge
     return {"status": "received", "message": f"Plugin '{plugin_name}' removal received for review."}
@@ -70,4 +85,6 @@ def submit_plugin(submission: PluginSubmission):
     # For now, just log and acknowledge; in production, review and add to registry
     print(f"[PLUGIN SUBMISSION] {submission.name} by {submission.author}")
     # TODO: Add review, sandboxing, and registry integration
+    # TODO: Integrate with admin review workflow (approval required)
+    # TODO: Add static analysis for submitted code
     return {"status": "received", "message": "Plugin submission received for review."}

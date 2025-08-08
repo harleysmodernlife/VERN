@@ -1,32 +1,18 @@
 # VERN requirements
 
-# Core
 requests
 python-dotenv
-google-api-python-client
-google-auth
-chromadb
 anyio
 httpx
 pyyaml
 streamlit
-pillow
-psutil
-pytesseract
-txtai
-
-# MCP SDK (if used)
-mcp
-
-
-# Backend (FastAPI, DB, etc.)
 fastapi
 uvicorn
 pydantic
 sqlalchemy
 databases
 websockets
-
-# Testing
 pytest
 pytest-asyncio
+neo4j
+txtai

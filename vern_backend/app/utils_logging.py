@@ -43,6 +43,32 @@ def get_logger(name: str = "vern") -> logging.Logger:
 def request_id() -> str:
     return uuid.uuid4().hex
 
+def get_privacy_logger(name: str = "vern.privacy") -> logging.Logger:
+    """
+    Returns a compartmentalized logger for privacy-relevant events.
+    TODO: Add file handler or external export for privacy logs.
+    """
+    logger = logging.getLogger(name)
+    if logger.handlers:
+        return logger
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    if LOG_FORMAT == "json":
+        handler.setFormatter(JsonFormatter())
+    else:
+        handler.setFormatter(logging.Formatter("[%(levelname)s] %(name)s: %(message)s"))
+    logger.addHandler(handler)
+    logger.propagate = False
+    return logger
+
+def log_privacy_event(event: str, payload: dict):
+    """
+    Log a privacy-relevant event using the privacy logger.
+    TODO: Integrate with consent management and privacy audit export.
+    """
+    logger = get_privacy_logger()
+    logger.info(event, extra={"extra": payload})
+
 
 def timing_middleware(app):
     """

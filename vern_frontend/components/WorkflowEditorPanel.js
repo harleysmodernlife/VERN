@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 
 export default function WorkflowEditorPanel() {
+  // TODO: Add workflow import/export functionality
+  // TODO: Add workflow validation and analytics
+  // TODO: Improve error handling and UX for CRUD operations
+  // TODO: Document backend endpoints for workflow CRUD
+
   const [workflows, setWorkflows] = useState({});
   const [workflowName, setWorkflowName] = useState("");
   const [steps, setSteps] = useState([{ agent: "", input: "", persona: "default", context: "" }]);

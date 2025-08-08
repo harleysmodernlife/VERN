@@ -22,8 +22,22 @@ const messages = {
   }
 };
 
+import AgentManagementPanel from "./AgentManagementPanel";
+import FeedbackPanel from "./FeedbackPanel";
+
+/**
+ * Unified Dashboard UI
+ * Integration points:
+ * - AgentManagementPanel: Connect to agent registry API for CRUD, status, cluster assignment.
+ * - WorkflowEditorPanel: Integrate workflow builder, drag-and-drop, persistence.
+ * - PluginMarketplacePanel/PluginRegistryPanel: Plugin install, enable/disable, invoke.
+ * - OnboardingPanel: User onboarding, persona/profile setup, dependency checks.
+ * TODO: Implement drag-and-drop workflow builder in WorkflowEditorPanel.
+ * TODO: Add contextual help and notifications in all panels.
+ * TODO: Sidebar: highlight active panel, keyboard navigation, accessibility.
+ */
+
 export default function Dashboard() {
-  // Guard against SSR for localStorage
   const isBrowser = typeof window !== "undefined";
   const [locale, setLocale] = useState(() => {
     if (isBrowser) {
@@ -38,100 +52,136 @@ export default function Dashboard() {
     }
   }, [locale, isBrowser]);
 
-  // Example: fetch cluster status using unified API base
-  useEffect(() => {
-    const url = joinApi("/agents/status");
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        // no-op store; future: show in a panel
-        // console.debug("Cluster status", data);
-      })
-      .catch(() => {
-        // swallow for now; dashboard is placeholder UI
-      });
-  }, []);
+  // Sidebar navigation state
+  const panels = [
+    { key: "agents", label: "Agents", component: <AgentManagementPanel /> },
+    { key: "workflows", label: "Workflows", component: <WorkflowEditorPanel /> },
+    { key: "plugins", label: "Plugins", component: <PluginMarketplacePanel /> },
+    { key: "integrations", label: "Integrations", component: <IntegrationManagerPanel /> },
+    { key: "feedback", label: "Feedback", component: <FeedbackPanel /> },
+    { key: "help", label: "Help", component: <HelpPanel /> },
+    { key: "onboarding", label: "Onboarding", component: <OnboardingPanel /> }
+  ];
+  const [activePanel, setActivePanel] = useState("agents");
+
+  // TODO: Add keyboard navigation for sidebar (accessibility)
+  // TODO: Add notification system for panel actions
 
   return (
     <IntlProvider locale={locale} messages={messages[locale]}>
       <div
         style={{
+          display: "flex",
           border: "2px solid #333",
-          padding: "2rem",
           borderRadius: "12px",
           background: "#fff",
-          maxWidth: "900px",
-          margin: "0 auto"
+          maxWidth: "1100px",
+          margin: "0 auto",
+          minHeight: "600px"
         }}
         aria-label="VERN Dashboard"
         tabIndex={0}
       >
-        <div style={{ marginBottom: "1rem" }}>
-          <label htmlFor="lang-select" style={{ marginRight: "0.5rem" }}>
-            <FormattedMessage id="language" defaultMessage="Language" />:
-          </label>
-          <select
-            id="lang-select"
-            value={locale}
-            onChange={e => setLocale(e.target.value)}
-            aria-label="Select language"
-            tabIndex={0}
-            aria-describedby="lang-desc"
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-          </select>
-          <span id="lang-desc" style={{ display: "none" }}>
-            Choose your preferred language for the dashboard.
-          </span>
-        </div>
-        <h2>
-          <FormattedMessage id="dashboard" defaultMessage="Dashboard" />
-        </h2>
-        <p>
-          <FormattedMessage id="panelDesc" defaultMessage="Live agent/cluster status, plugin management, and workflow visualization." />
-        </p>
-        {/* Live Agent/Cluster Status Panel (polls registry, container-aware base) */}
-        <AgentClusterStatus locale={locale} />
-        {/* Accessibility & i18n Status Panel */}
-        <div
+        {/* Sidebar Navigation */}
+        <nav
           style={{
-            marginTop: "2rem",
-            padding: "1rem",
-            background: "#f5f5f5",
-            borderRadius: "6px",
-            fontSize: "0.95rem"
+            width: "220px",
+            background: "#f7f7fa",
+            borderRight: "1px solid #ddd",
+            padding: "2rem 1rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem"
           }}
-          aria-live="polite"
+          aria-label="Dashboard Sidebar"
         >
-          <strong>
-            <FormattedMessage id="a11yStatus" defaultMessage="Accessibility & Language Status" />
-          </strong>
-          <ul>
-            <li>
-              <FormattedMessage id="a11yKeyboard" defaultMessage="Keyboard navigation: enabled" />
-            </li>
-            <li>
-              <FormattedMessage id="a11yScreenReader" defaultMessage="Screen reader support: enabled" />
-            </li>
-            <li>
-              <FormattedMessage id="a11yLang" defaultMessage="Current language:" /> {locale === "en" ? "English" : "Español"}
-            </li>
-          </ul>
-        </div>
-        {/* Example image/icon with alt text for future use */}
-        {/* <img src="/static/vern_logo.png" alt="VERN project logo" style={{marginTop: "1rem", width: 80}} /> */}
-        <ConfigEditorPanel />
-        <WorkflowEditorPanel />
-        <PluginMarketplacePanel />
-        <IntegrationManagerPanel />
-        <OnboardingPanel />
-        <HelpPanel />
-        <div style={{ marginTop: "2rem", fontSize: "0.9em", color: "#666" }}>
-          <span aria-label="Keyboard navigation tip">
-            <b>Tip:</b> Use <kbd>Tab</kbd> and <kbd>Shift+Tab</kbd> to navigate between panels and controls.
-          </span>
-        </div>
+          <div style={{ marginBottom: "2rem" }}>
+            <label htmlFor="lang-select" style={{ marginRight: "0.5rem" }}>
+              <FormattedMessage id="language" defaultMessage="Language" />:
+            </label>
+            <select
+              id="lang-select"
+              value={locale}
+              onChange={e => setLocale(e.target.value)}
+              aria-label="Select language"
+              tabIndex={0}
+              aria-describedby="lang-desc"
+            >
+              <option value="en">English</option>
+              <option value="es">Español</option>
+            </select>
+            <span id="lang-desc" style={{ display: "none" }}>
+              Choose your preferred language for the dashboard.
+            </span>
+          </div>
+          {panels.map(panel => (
+            <button
+              key={panel.key}
+              onClick={() => setActivePanel(panel.key)}
+              style={{
+                padding: "0.75rem 1rem",
+                borderRadius: "6px",
+                border: activePanel === panel.key ? "2px solid #0070f3" : "1px solid #ccc",
+                background: activePanel === panel.key ? "#e6f0ff" : "#fff",
+                fontWeight: activePanel === panel.key ? "bold" : "normal",
+                cursor: "pointer",
+                outline: "none"
+              }}
+              aria-current={activePanel === panel.key ? "page" : undefined}
+              tabIndex={0}
+            >
+              {panel.label}
+            </button>
+          ))}
+          {/* TODO: Add icons for each panel */}
+        </nav>
+        {/* Main Panel Content */}
+        <main style={{ flex: 1, padding: "2rem", minHeight: "600px" }}>
+          <h2>
+            <FormattedMessage id="dashboard" defaultMessage="Dashboard" />
+          </h2>
+          <p>
+            <FormattedMessage id="panelDesc" defaultMessage="Live agent/cluster status, plugin management, and workflow visualization." />
+          </p>
+          {/* Live Agent/Cluster Status Panel (polls registry, container-aware base) */}
+          <AgentClusterStatus locale={locale} />
+          {/* Render selected panel */}
+          <div style={{ marginTop: "2rem" }}>
+            {panels.find(p => p.key === activePanel)?.component}
+          </div>
+          {/* Accessibility & i18n Status Panel */}
+          <div
+            style={{
+              marginTop: "2rem",
+              padding: "1rem",
+              background: "#f5f5f5",
+              borderRadius: "6px",
+              fontSize: "0.95rem"
+            }}
+            aria-live="polite"
+          >
+            <strong>
+              <FormattedMessage id="a11yStatus" defaultMessage="Accessibility & Language Status" />
+            </strong>
+            <ul>
+              <li>
+                <FormattedMessage id="a11yKeyboard" defaultMessage="Keyboard navigation: enabled" />
+              </li>
+              <li>
+                <FormattedMessage id="a11yScreenReader" defaultMessage="Screen reader support: enabled" />
+              </li>
+              <li>
+                <FormattedMessage id="a11yLang" defaultMessage="Current language:" /> {locale === "en" ? "English" : "Español"}
+              </li>
+            </ul>
+          </div>
+          {/* TODO: Add notifications and contextual help */}
+          <div style={{ marginTop: "2rem", fontSize: "0.9em", color: "#666" }}>
+            <span aria-label="Keyboard navigation tip">
+              <b>Tip:</b> Use <kbd>Tab</kbd> and <kbd>Shift+Tab</kbd> to navigate between panels and controls.
+            </span>
+          </div>
+        </main>
       </div>
     </IntlProvider>
   );

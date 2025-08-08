@@ -68,11 +68,32 @@ def get_env():
 
 @router.post("/env")
 def post_env(config: EnvConfig):
-    # Example validation: require at least one key
+    # Only allow updates to whitelisted keys
+    WHITELISTED_ENV_KEYS = [
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "OPENWEATHERMAP_API_KEY",
+        "GOOGLE_CALENDAR_CLIENT_ID",
+        "GOOGLE_CALENDAR_CLIENT_SECRET",
+        "GOOGLE_CALENDAR_ID",
+        "GOOGLE_CALENDAR_CREDENTIALS_JSON",
+        "SQLITE_DB_PATH",
+        "CHROMA_DB_PATH"
+    ]
     if not config.values:
         raise HTTPException(status_code=400, detail="No config values provided.")
+    for k in config.values.keys():
+        if k not in WHITELISTED_ENV_KEYS:
+            raise HTTPException(status_code=403, detail=f"Key '{k}' is not allowed.")
     try:
         write_env(config.values)
+        # Audit log entry
+        config_audit_log.append({
+            "action": "env_update",
+            "keys": list(config.values.keys()),
+            "values": {k: config.values[k] for k in config.values},
+            "user": "unknown",  # Replace with user info if available
+        })
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to write .env: {str(e)}")
@@ -83,17 +104,31 @@ def get_yaml():
 
 @router.post("/yaml")
 def post_yaml(config: YamlConfig):
-    # Example validation: require at least one key
+    # Only allow updates to whitelisted keys
+    WHITELISTED_YAML_KEYS = [
+        "agent_backends", "default_backend", "agents", "settings"
+    ]
     if not config.values:
         raise HTTPException(status_code=400, detail="No config values provided.")
+    for k in config.values.keys():
+        if k not in WHITELISTED_YAML_KEYS:
+            raise HTTPException(status_code=403, detail=f"Key '{k}' is not allowed.")
     try:
         write_yaml(config.values)
+        # Audit log entry
+        config_audit_log.append({
+            "action": "yaml_update",
+            "keys": list(config.values.keys()),
+            "values": {k: config.values[k] for k in config.values},
+            "user": "unknown",  # Replace with user info if available
+        })
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to write YAML: {str(e)}")
 
 # In-memory error log for config actions
 config_errors = []
+config_audit_log = []
 
 class ConfigError(BaseModel):
     error: str
@@ -107,6 +142,10 @@ def log_config_error(err: ConfigError):
 @router.get("/error")
 def get_config_errors():
     return config_errors
+
+@router.get("/audit")
+def get_config_audit():
+    return config_audit_log
 
 @router.get("/validate")
 def validate_env_config():

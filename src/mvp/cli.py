@@ -7,8 +7,8 @@ If orchestrator returns no response, fallback to direct LLM call for debugging.
 """
 
 import sys
-from mvp.llm_router import get_llm_backend, route_llm_call
-from mvp.orchestrator import orchestrator_respond
+from src.mvp.llm_router import get_llm_backend, route_llm_call
+from src.mvp.orchestrator import orchestrator_respond
 
 def main():
     print("Welcome to VERN CLI Chat!")

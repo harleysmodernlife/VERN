@@ -9,5 +9,4 @@ websockets
 pytest
 pytest-asyncio
 neo4j
-PyYAML
 txtai

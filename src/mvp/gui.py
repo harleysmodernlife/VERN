@@ -5,9 +5,9 @@ Interactive GUI for VERN with real-time streaming output, config controls, agent
 """
 
 import streamlit as st
-from mvp.llm_router import get_llm_backend
-from mvp.orchestrator import orchestrator_respond
-from mvp.ollama_llm import call_ollama
+from src.mvp.llm_router import get_llm_backend
+from src.mvp.orchestrator import orchestrator_respond
+from src.mvp.ollama_llm import call_ollama
 import yaml
 import os
 
@@ -100,7 +100,7 @@ elif selected_page == "Agents":
 
 elif selected_page == "Tools/Plugins":
     st.subheader("Tool/Plugin Management")
-    from mvp.plugin_registry import get_all_mcp_tools
+    from src.mvp.plugin_registry import get_all_mcp_tools
     all_tools = get_all_mcp_tools()
     tool_options = [t["name"] for t in all_tools]
     tool_labels = {t["name"]: t["description"] for t in all_tools}

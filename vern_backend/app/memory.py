@@ -8,6 +8,12 @@ References:
 
 This module provides CRUD operations for entities, relationships, and temporal events in the agent memory graph.
 """
+VERN Memory Subsystem: Knowledge Graph API
+
+Supports RAG (retrieval-augmented generation), semantic search, and long-term logs.
+"""
+# TODO: Integrate with external document stores for hybrid RAG.
+# TODO: Add advanced event/entity filtering for semantic search.
 
 import os
 from typing import Dict, Any, List, Optional
@@ -21,6 +27,7 @@ class MemoryGraph:
         self.entities = {}
         self.relationships = []
         self.events = []
+        self.logs = []  # Long-term logs for agent memory
 
     def add_entity(self, entity_id: str, properties: Dict[str, Any]) -> None:
         self.entities[entity_id] = properties
@@ -58,6 +65,38 @@ class MemoryGraph:
     def get_events(self, entity_id: str) -> List[Dict[str, Any]]:
         return [event for event in self.events if event["entity"] == entity_id]
 
+
+    # RAG: Retrieve relevant entities/relationships/events for a query
+    def rag_retrieve(self, query: str, top_k: int = 5) -> Dict[str, List[Any]]:
+        """
+        Semantic retrieval for RAG. Returns top_k relevant entities, relationships, and events.
+        """
+        # TODO: Replace with embedding-based similarity for production.
+        # Simple keyword match (placeholder for semantic search)
+        entities = [eid for eid, props in self.entities.items() if query.lower() in str(props).lower()]
+        relationships = [rel for rel in self.relationships if query.lower() in str(rel).lower()]
+        events = [evt for evt in self.events if query.lower() in str(evt).lower()]
+        return {
+            "entities": entities[:top_k],
+            "relationships": relationships[:top_k],
+            "events": events[:top_k]
+        }
+
+    # Long-term log storage
+    def add_log(self, log_entry: Dict[str, Any]) -> None:
+        """
+        Add a log entry to long-term memory.
+        """
+        # TODO: Persist logs to external DB for durability.
+        self.logs.append(log_entry)
+
+    def get_logs(self, filter_key: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Retrieve logs, optionally filtered by key.
+        """
+        if filter_key:
+            return [log for log in self.logs if filter_key in str(log)]
+        return self.logs
 
 def get_memory_backend():
     """

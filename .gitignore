@@ -70,3 +70,7 @@ hf_cache/
 
 external/mcp_servers
 
+
+# Ignore VERN DB and coverage outputs
+db/vern.db
+vern_frontend/coverage/

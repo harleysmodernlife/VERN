@@ -308,80 +308,6 @@ def get_weather(location: str) -> str:
     except Exception as e:
         return f"Unexpected error: {e}"
 
-@mcp.tool()
-def add_event(title: str, date: str) -> str:
-    """
-    Adds an event to the Google Calendar.
-    Args:
-        title: Title of the event.
-        date: Date of the event (YYYY-MM-DD).
-    Returns:
-        Confirmation message or error.
-    """
-    import os
-    from dotenv import load_dotenv
-    from google.oauth2 import service_account
-    from googleapiclient.discovery import build
-
-    load_dotenv()
-    calendar_id = os.getenv("GOOGLE_CALENDAR_ID")
-    creds_path = os.getenv("GOOGLE_CALENDAR_CREDENTIALS_JSON", "google_calendar_service_account.json")
-
-    if not calendar_id or not os.path.exists(creds_path):
-        return "Google Calendar config missing. Set GOOGLE_CALENDAR_ID and GOOGLE_CALENDAR_CREDENTIALS_JSON in your .env file."
-
-    try:
-        creds = service_account.Credentials.from_service_account_file(
-            creds_path,
-            scopes=["https://www.googleapis.com/auth/calendar"]
-        )
-        service = build("calendar", "v3", credentials=creds)
-        event = {
-            "summary": title,
-            "start": {"date": date},
-            "end": {"date": date},
-        }
-        created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
-        return f"Event '{title}' added for {date}. Google Event ID: {created_event.get('id')}"
-    except Exception as e:
-        return f"Google Calendar API error: {e}"
-
-@mcp.tool()
-def list_events() -> str:
-    """
-    Lists upcoming events from the Google Calendar.
-    Returns:
-        String listing all events or error.
-    """
-    import os
-    from dotenv import load_dotenv
-    from google.oauth2 import service_account
-    from googleapiclient.discovery import build
-    from datetime import datetime, timezone
-
-    load_dotenv()
-    calendar_id = os.getenv("GOOGLE_CALENDAR_ID")
-    creds_path = os.getenv("GOOGLE_CALENDAR_CREDENTIALS_JSON", "google_calendar_service_account.json")
-
-    if not calendar_id or not os.path.exists(creds_path):
-        return "Google Calendar config missing. Set GOOGLE_CALENDAR_ID and provide service account JSON."
-
-    try:
-        creds = service_account.Credentials.from_service_account_file(
-            creds_path,
-            scopes=["https://www.googleapis.com/auth/calendar.readonly"]
-        )
-        service = build("calendar", "v3", credentials=creds)
-        now = datetime.now(timezone.utc).isoformat()
-        events_result = service.events().list(
-            calendarId=calendar_id, timeMin=now, maxResults=10, singleEvents=True, orderBy="startTime"
-        ).execute()
-        events = events_result.get("items", [])
-        if not events:
-            return "No upcoming events found."
-        return "\n".join([f"{e['start'].get('date', e['start'].get('dateTime'))}: {e['summary']}" for e in events])
-    except Exception as e:
-        return f"Google Calendar API error: {e}"
 
 @mcp.tool()
 def fileops_list_files(directory: str = ".") -> list:
@@ -429,41 +355,6 @@ def fileops_read_file(path: str) -> str:
             return f.read()
     except Exception as e:
         return f"Error reading file: {e}"
-
-@mcp.tool()
-def web_search(query: str, num_results: int = 5) -> str:
-    """
-    Search the web using Google and return summaries of the top results.
-    Args:
-        query: Search query string.
-        num_results: Number of results to return (default: 5).
-    Returns:
-        Summaries of top search results or error message.
-    """
-    import requests
-    from bs4 import BeautifulSoup
-
-    headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; VERN/1.0; +https://github.com/harleysmodernlife/VERN)"
-    }
-    search_url = "https://www.google.com/search"
-    params = {"q": query, "num": num_results}
-    try:
-        resp = requests.get(search_url, params=params, headers=headers, timeout=10)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
-        results = []
-        for g in soup.find_all("div", class_="g")[:num_results]:
-            title = g.find("h3")
-            snippet = g.find("span", class_="aCOpRe")
-            link = g.find("a")
-            if title and link:
-                results.append(f"{title.text}\n{link['href']}\n{snippet.text if snippet else ''}")
-        if not results:
-            return "No results found or Google blocked the request."
-        return "\n\n".join(results)
-    except Exception as e:
-        return f"Web search error: {e}"
 
 # For direct execution (optional)
 if __name__ == "__main__":

@@ -25,6 +25,38 @@ export default function OrchestratorPanel() {
   // Guard against SSR: Next.js builds pages on the server where window/localStorage don't exist.
   const isBrowser = typeof window !== "undefined";
 
+  // Privacy status and audit log state
+  const [privacyStatus, setPrivacyStatus] = useState("unknown");
+  const [privacyAuditLog, setPrivacyAuditLog] = useState([]);
+  const [showAuditTrail, setShowAuditTrail] = useState(false);
+
+  useEffect(() => {
+    if (!isBrowser) return;
+    // Fetch privacy status (stub: always enabled for MVP)
+    setPrivacyStatus("enabled");
+    // TODO: Fetch real privacy status from backend
+  }, [isBrowser]);
+
+  async function fetchPrivacyAuditLog() {
+    setShowAuditTrail(true);
+    try {
+      const apiBase = isBrowser && window?.location?.hostname
+        ? (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+          ? "http://localhost:8000"
+          : "http://backend:8000"
+        : "http://localhost:8000";
+      const res = await fetch(`${apiBase}/privacy/audit/log`);
+      if (res.ok) {
+        const data = await res.json();
+        setPrivacyAuditLog(data);
+      } else {
+        setPrivacyAuditLog([]);
+      }
+    } catch {
+      setPrivacyAuditLog([]);
+    }
+  }
+
   // Core input/response state
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
@@ -257,6 +289,16 @@ export default function OrchestratorPanel() {
           <span style={{ color: connected === false ? "red" : connected ? "green" : "#666" }}>
             {connected === null ? "checking..." : connected ? "connected" : "unreachable"}
           </span>
+          <span style={{ marginLeft: "1rem", color: privacyStatus === "enabled" ? "green" : "red" }}>
+            Privacy: {privacyStatus}
+          </span>
+          <button
+            style={{ marginLeft: "1rem", padding: "0.2rem 0.5rem", fontSize: "0.9rem" }}
+            onClick={fetchPrivacyAuditLog}
+            aria-label="View privacy audit trail"
+          >
+            View Audit Trail
+          </button>
         </div>
         <div style={{ marginBottom: "1rem" }}>
           <label htmlFor="lang-select-orch" style={{ marginRight: "0.5rem" }}>
@@ -369,6 +411,62 @@ export default function OrchestratorPanel() {
               <button onClick={() => submitPrivacyDecision(true)} disabled={loading} style={{ marginRight: "0.5rem" }}>Allow</button>
               <button onClick={() => submitPrivacyDecision(false)} disabled={loading}>Deny</button>
             </div>
+          </div>
+        )}
+        {/* Privacy Audit Trail Modal */}
+        {showAuditTrail && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            style={{
+              position: "fixed",
+              top: "10%",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "#fff",
+              border: "2px solid #09c",
+              borderRadius: "8px",
+              padding: "2rem",
+              zIndex: 1000,
+              maxHeight: "70vh",
+              overflowY: "auto",
+              minWidth: "400px"
+            }}
+          >
+            <h3>Privacy Audit Trail</h3>
+            <button
+              style={{ position: "absolute", top: "1rem", right: "2rem" }}
+              onClick={() => setShowAuditTrail(false)}
+              aria-label="Close audit trail"
+            >
+              Close
+            </button>
+            {privacyAuditLog.length === 0 ? (
+              <p>No privacy decisions recorded.</p>
+            ) : (
+              <table style={{ width: "100%", fontSize: "0.95rem" }}>
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Action</th>
+                    <th>Allowed</th>
+                    <th>User</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {privacyAuditLog.map((entry, idx) => (
+                    <tr key={idx}>
+                      <td>{new Date(entry.decided_at * 1000).toLocaleString()}</td>
+                      <td>{entry.action}</td>
+                      <td>{entry.allowed ? "✅" : "❌"}</td>
+                      <td>{entry.user_id || "?"}</td>
+                      <td>{entry.reason}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         )}
       </div>

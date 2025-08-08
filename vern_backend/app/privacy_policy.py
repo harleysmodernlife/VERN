@@ -28,11 +28,15 @@ class PrivacyPolicyEngine:
     - evaluate(action, user_id, context) returns (policy_required, payload)
     - record_decision(request_id, allowed, scope, reason) stores a decision
     - check_cached_decision(action) returns an existing decision if not expired
+
+    TODO: Add persistent audit trail for all privacy decisions (privacy audits).
+    TODO: Implement consent management and data export for user requests.
     """
     def __init__(self, decision_ttl_seconds: int = DEFAULT_DECISION_TTL_SECONDS):
         self.decision_ttl_seconds = decision_ttl_seconds
         self._pending: Dict[str, Dict] = {}     # request_id -> payload
         self._decisions: Dict[str, PolicyDecision] = {}  # request_id -> decision
+        self._audit_log: list = []  # Compartmentalized privacy audit log
 
     def _now(self) -> float:
         return time.time()
@@ -77,6 +81,7 @@ class PrivacyPolicyEngine:
     def record_decision(self, request_id: str, allowed: bool, scope: Optional[dict] = None, reason: Optional[str] = None) -> PolicyDecision:
         """
         Store a user decision for a pending request. Returns the decision object.
+        Also logs the decision to the compartmentalized privacy audit log.
         """
         info = self._pending.pop(request_id, None)
         action = info["action"] if info else "unknown"
@@ -92,6 +97,18 @@ class PrivacyPolicyEngine:
             expires_at=expires_at,
         )
         self._decisions[request_id] = decision
+        # Compartmentalized privacy audit log entry
+        self._audit_log.append({
+            "request_id": request_id,
+            "action": action,
+            "allowed": allowed,
+            "reason": reason,
+            "scope": scope,
+            "decided_at": decided_at,
+            "expires_at": expires_at,
+            "user_id": info["user_id"] if info and "user_id" in info else None,
+        })
+        # TODO: Persist audit log to external storage for privacy audits
         return decision
 
     def get_decision(self, request_id: str) -> Optional[PolicyDecision]:
@@ -128,3 +145,10 @@ class PrivacyPolicyEngine:
 
 # Singleton engine
 engine = PrivacyPolicyEngine()
+
+def get_privacy_audit_log():
+    """
+    Returns the compartmentalized privacy audit log.
+    TODO: Add filtering by user_id, action, or time for frontend audit trail.
+    """
+    return engine._audit_log

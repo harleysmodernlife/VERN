@@ -28,6 +28,7 @@ export default function UserProfilePanel() {
   const [userId, setUserId] = useState("default_user");
   const [loading, setLoading] = useState(true);
   const [locale, setLocale] = useState(() => localStorage.getItem("vern_lang") || "en");
+  const [adaptationEvents, setAdaptationEvents] = useState([]);
 
   async function fetchUser() {
     setLoading(true);
@@ -41,8 +42,19 @@ export default function UserProfilePanel() {
     setLoading(false);
   }
 
+  async function fetchEvents() {
+    try {
+      const res = await fetch(`http://localhost:8000/adaptation_events/${userId}`);
+      const data = await res.json();
+      setAdaptationEvents(data);
+    } catch {
+      setAdaptationEvents([]);
+    }
+  }
+
   useEffect(() => {
     fetchUser();
+    fetchEvents();
     // eslint-disable-next-line
   }, [userId]);
 
@@ -84,17 +96,32 @@ export default function UserProfilePanel() {
             style={{ width: "200px" }}
             aria-label={messages[locale].userId}
           />
-          <button onClick={fetchUser} style={{ marginLeft: "1rem" }}>
+          <button onClick={() => { fetchUser(); fetchEvents(); }} style={{ marginLeft: "1rem" }}>
             <FormattedMessage id="load" defaultMessage="Load" />
           </button>
         </label>
         {loading ? (
           <p><FormattedMessage id="loading" defaultMessage="Loading..." /></p>
         ) : user ? (
-          <UserProfileEditor user={user} userId={userId} locale={locale} reload={fetchUser} />
+          <UserProfileEditor user={user} userId={userId} locale={locale} reload={() => { fetchUser(); fetchEvents(); }} />
         ) : (
           <p><FormattedMessage id="notFound" defaultMessage="User not found." /></p>
         )}
+        <div style={{ marginTop: "2rem" }}>
+          <h5>Recent Adaptation Events</h5>
+          {adaptationEvents.length === 0 ? (
+            <p>No adaptation events found.</p>
+          ) : (
+            <ul>
+              {adaptationEvents.map((event, idx) => (
+                <li key={idx}>
+                  <b>{event.event_type}</b> - {event.event_data} <i>({event.created_at})</i>
+                </li>
+              ))}
+            </ul>
+          )}
+          {/* TODO: Add filtering and richer event details */}
+        </div>
       </div>
     </IntlProvider>
   );
@@ -104,6 +131,7 @@ export default function UserProfilePanel() {
 function UserProfileEditor({ user, userId, locale, reload }) {
   const [profile, setProfile] = useState(user.profile_data || {});
   const [username, setUsername] = useState(user.username || "");
+  const [preferences, setPreferences] = useState(user.preferences || "");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -111,13 +139,13 @@ function UserProfileEditor({ user, userId, locale, reload }) {
     setSaving(true);
     setMessage("");
     try {
-      const res = await fetch(`http://localhost:8000/users/${userId}/update`, {
-        method: "POST",
+      const res = await fetch(`http://localhost:8000/users/${userId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, profile_data: profile })
+        body: JSON.stringify({ username, profile_data: profile, preferences })
       });
       const data = await res.json();
-      setMessage(data.status === "success" ? "Profile updated!" : "Error updating profile");
+      setMessage(data.status === "updated" ? "Profile updated!" : "Error updating profile");
       reload();
     } catch (err) {
       setMessage("Error updating profile");
@@ -136,6 +164,16 @@ function UserProfileEditor({ user, userId, locale, reload }) {
           style={{ marginLeft: "0.5rem", width: "200px" }}
         />
       </label>
+      <div style={{ marginTop: "1rem" }}>
+        <b>Preferences:</b>
+        <input
+          type="text"
+          value={preferences}
+          onChange={e => setPreferences(e.target.value)}
+          style={{ marginLeft: "0.5rem", width: "300px" }}
+          placeholder="e.g. dark_mode=true, notifications=off"
+        />
+      </div>
       <div style={{ marginTop: "1rem" }}>
         <b>Profile Data:</b>
         <textarea
@@ -160,6 +198,7 @@ function UserProfileEditor({ user, userId, locale, reload }) {
           {message}
         </div>
       )}
+      {/* TODO: Add richer preference editing and validation */}
     </div>
   );
 }

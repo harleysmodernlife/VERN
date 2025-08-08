@@ -24,7 +24,23 @@ def process_context(context):
         return refined
     return context
 
-def adjust_agent_parameters(feedback_data):
+import requests
+
+def log_adaptation_event(user_id, event_type, event_data, triggered_by="orchestrator"):
+    # Log adaptation event to backend
+    try:
+        payload = {
+            "user_id": user_id,
+            "event_type": event_type,
+            "event_data": event_data,
+            "triggered_by": triggered_by
+        }
+        # TODO: Use backend URL from config/environment
+        requests.post("http://localhost:8000/adaptation_event", json=payload)
+    except Exception as e:
+        print(f"Failed to log adaptation event: {e}")
+
+def adjust_agent_parameters(feedback_data, user_id="default_user"):
     """
     Adjust agent parameters dynamically based on aggregated feedback.
     For demonstration, if the negative feedback ratio exceeds a threshold,
@@ -39,7 +55,8 @@ def adjust_agent_parameters(feedback_data):
             "High negative feedback detected (ratio: "
             f"{neg_ratio:.2f}). Consider tuning agent parameters."
         )
-        # In a real system, adjustments would be applied here.
+        log_adaptation_event(user_id, "parameter_adjustment", f"Negative ratio: {neg_ratio}", "feedback")
+        # TODO: Apply parameter adjustments automatically
         return recommendation
     return "Agent parameters are optimal."
 
@@ -75,8 +92,9 @@ def orchestrator_respond(user_input, context=None, agent_status=None, user_id="d
         # If aggregated feedback is provided in the context, adjust agent parameters.
         if refined_context and isinstance(refined_context, dict) and "feedback" in refined_context:
             feedback_data = refined_context["feedback"]
-            recommendation = adjust_agent_parameters(feedback_data)
+            recommendation = adjust_agent_parameters(feedback_data, user_id=user_id)
             response += f"\nParameter Recommendation: {recommendation}"
+            # TODO: Use user profile/preferences for further personalization
         
         log_action(agent_id, user_id, "orchestrator_response", {
             "response": response,
@@ -95,6 +113,8 @@ def orchestrator_respond(user_input, context=None, agent_status=None, user_id="d
         return error_msg
 
 # Additional orchestration functions (e.g., workflow aggregation, agent chaining) can be added here.
+
+# TODO: Fetch user profile and feedback from backend for richer context.
 
 # --- Workflow & Agent Chaining ---
 
@@ -141,9 +161,26 @@ async def run_workflow(name, initial_input=None, user_id="default_user"):
         try:
             # Dynamically import and call the agent's respond function
             # This is a simplified example; a real implementation would use a registry
+            # --- Agent Routing ---
+            # TODO: Expand routing logic for advanced workflows and agent chaining.
+            # TODO: Add error handling for plugin/memory integration.
+            # Integration Points:
+            # - Memory: Pass context/memory to agents for stateful workflows.
+            # - Plugins: Enable plugin calls for agent enhancement.
+            # - UI: Aggregate agent outputs for frontend display.
+
             if agent == "research":
                 from src.mvp.research import research_respond
                 result_maybe_async = research_respond(agent_input, user_id=user_id)
+            elif agent == "writing":
+                from src.mvp.writing import writing_respond
+                result_maybe_async = writing_respond(agent_input, user_id=user_id)
+            elif agent == "presentation":
+                from src.mvp.presentation import presentation_respond
+                result_maybe_async = presentation_respond(agent_input, user_id=user_id)
+            elif agent == "insight":
+                from src.mvp.insight import insight_respond
+                result_maybe_async = insight_respond(agent_input, user_id=user_id)
             elif agent == "finance":
                 from src.mvp.finance_resource import finance_respond
                 result_maybe_async = finance_respond(agent_input, user_id=user_id)
@@ -151,6 +188,7 @@ async def run_workflow(name, initial_input=None, user_id="default_user"):
                 from src.mvp.health_wellness import health_respond
                 result_maybe_async = health_respond(agent_input, user_id=user_id)
             else:
+                # TODO: Implement fallback logic for unknown agents.
                 result_maybe_async = f"Agent '{agent}' not implemented."
 
             # Normalize the result here
@@ -163,4 +201,6 @@ async def run_workflow(name, initial_input=None, user_id="default_user"):
             results.append({"step": idx + 1, "agent": agent, "error": str(e)})
             break
             
+    # TODO: Add workflow aggregation logic for multi-agent outputs.
+    # TODO: Write tests for orchestrator routing and agent integration.
     return results

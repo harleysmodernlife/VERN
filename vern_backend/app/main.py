@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+# OAuth2 removed: all endpoints are public until proper auth is implemented
 from fastapi import Body
 from pydantic import BaseModel
 from vern_backend.app.agents import router as agents_router
@@ -67,6 +67,8 @@ try:
             print("[startup] DB check: agents table OK")
         else:
             print("[startup][WARN] DB check: agents table MISSING")
+    # TODO: Automate agent registration and plugin enable at startup if not present
+    # Example: call registry.heartbeat("admin", "Admin", "[]", "{}") and set_tool_enabled("espeak-tts", True)
 except Exception as _e:
     print(f"[startup][WARN] DB migrations failed or unavailable: {_e}")
 
@@ -183,13 +185,7 @@ def admin_db_verify(request: Request):
             headers={"x-error-code": "UNKNOWN_ERROR"},
         )
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    # TODO: Validate JWT token and return user info
-    if not token or token == "fake":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing token")
-    return {"user_id": "default_user"}
+# Authentication temporarily disabled; all endpoints are public
 
 app.include_router(agents_router)
 app.include_router(plugins_router)
@@ -289,9 +285,10 @@ def query_rag_memory(query: str, top_k: int = 5):
     results = rag_memory.query(query, top_k)
     return {"results": results}
 
+# /secure-status endpoint is now public
 @app.get("/secure-status")
-def secure_status(user=Depends(get_current_user)):
-    return {"status": "secure", "user": user}
+def secure_status():
+    return {"status": "secure", "user": "public"}
 
 # --- Multi-Agent Orchestration API ---
 

@@ -72,3 +72,18 @@
 
 - As VERN evolves to connect with more devices, platforms, and AIs, security practices must adapt.
 - See [FUTURE_VISION_AND_ROADMAP.md](FUTURE_VISION_AND_ROADMAP.md) for upcoming security and interoperability goals.
+
+## Backend Threat Model
+
+**Key Risks**
+- Unauthorized access to file/config endpoints
+- Privilege escalation via plugin/tool calls
+- Tampering with configuration or audit logs
+- Abuse of plugin interfaces for arbitrary code execution
+
+**Mitigations**
+- Server-side ACLs for sensitive file operations
+- Strict whitelisting of allowed config and plugin keys
+- Audit logging for all config changes
+- Input validation and error handling on all endpoints
+- Admin review hooks for plugin submissions

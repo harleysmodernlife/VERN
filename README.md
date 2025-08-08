@@ -1,103 +1,63 @@
-# VERN Project
+# VERN Integration: User Profile, Feedback, and Adaptation Logic
 
-**Note:** Voice features (ASR/TTS) require optional packages like `whisper`.
-These are not installed by default. If you want voice support, run:
-```
-pip install git+https://github.com/openai/whisper.git
-```
-Otherwise, VERN will run without voice features.
+## Summary of Changes
 
-## Core Architectural Patterns
+- **Database Schema:** Added `user_profiles`, `feedback`, and `adaptation_events` tables via migration.
+- **Backend APIs:** Refactored endpoints for persistent user profiles, feedback, and adaptation event logging.
+- **Agent Workflows:** Orchestrator now logs adaptation events and uses user profile/feedback data for personalization.
+- **Frontend Panels:** UserProfilePanel and FeedbackPanel enhanced for editing preferences, submitting feedback, and displaying adaptation events.
+- **Inline TODOs:** Added in backend and frontend files for future improvements (validation, richer UI, live updates).
 
-To improve stability and maintainability, VERN has adopted several core architectural patterns:
+## Onboarding, Setup, and Workflow Editing Enhancements (2025-08-08)
 
-*   **Standardized Error Envelope**: All API errors return a consistent JSON structure (`{ "ok": false, "error_code": "...", "message": "..." }`). This makes error handling on the frontend predictable and robust, as developers can rely on a single format for any failed request. See `vern_backend/app/errors.py` for implementation.
+- **Onboarding Wizard:** Step-by-step onboarding guides users through environment setup, DB initialization, agent registration, plugin enable, and profile setup. See [`vern_frontend/components/OnboardingPanel.js`](vern_frontend/components/OnboardingPanel.js:1).
+- **Backend Automation:** DB migrations run at startup. Agent registration and plugin enable endpoints are documented for automation. See inline TODOs in [`vern_backend/app/main.py`](vern_backend/app/main.py:54).
+- **Workflow Editor:** Visual editor supports drag-and-drop, CRUD, and live preview. Inline TODOs for import/export, validation, and analytics. See [`vern_frontend/components/WorkflowEditorPanel.js`](vern_frontend/components/WorkflowEditorPanel.js:1).
+- **Inline TODOs:** Major files updated with inline TODOs for future enhancements and automation.
+## Memory & RAG Upgrade (2025-08-08)
 
-*   **Centralized Database Path Helper**: The database connection path is managed by a single utility function (`get_sqlite_path` in `vern_backend/app/db_path.py`). Configuration is handled via the `SQLITE_DB_PATH` environment variable. This centralization prevents configuration drift and makes it easy to locate and manage the database file.
+- Extended [`vern_backend/app/memory.py`](vern_backend/app/memory.py:1) and [`vern_backend/app/vector_memory.py`](vern_backend/app/vector_memory.py:1) for RAG, semantic search, and long-term logs.
+- Integrated RAG and semantic retrieval into agent workflows ([`vern_backend/app/agents.py`](vern_backend/app/agents.py:1)).
+- Added unit tests for memory and agent integration ([`vern_backend/tests/test_memory_rag.py`](vern_backend/tests/test_memory_rag.py:1)).
+- Inline TODOs added for future enhancements (hybrid retrieval, advanced filtering, external DB persistence).
 
-*   **Unified Frontend API Base URL**: The frontend uses a single utility (`getApiBase` in `vern_frontend/lib/apiBase.js`) to determine the backend API's base URL. This utility checks for a global variable, then an environment variable, and finally falls back to a relative path. This ensures that the frontend can reliably connect to the backend across different deployment environments (local, staging, production) without code changes.
+## Next Steps
 
-## Standardized Error Envelopes (Backend)
+- Add richer validation and error handling for user profile and feedback forms.
+- Implement live updates for adaptation events (websockets or polling).
+- Expand agent workflow logic to leverage user preferences and feedback for deeper personalization.
+- Write tests for new endpoints and UI components.
+- Optimize database queries and add indices for performance.
 
-All non-2xx API errors return a uniform JSON envelope:
-```json
-{ "ok": false, "error_code": "STRING_CODE", "message": "Human-readable", "details": { }, "request_id": "optional" }
-```
-- Codes include COMMON (NOT_FOUND, VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, CONFLICT, METHOD_NOT_ALLOWED, RATE_LIMITED, UNKNOWN_ERROR), DB (DB_UNAVAILABLE, DB_MIGRATION_REQUIRED, DB_CONSTRAINT_VIOLATION), REGISTRY (REGISTRY_NOT_FOUND, REGISTRY_CONFLICT, REGISTRY_UNAVAILABLE), PRIVACY (PRIVACY_DENIED, PRIVACY_CONSENT_REQUIRED), INTEGRATION (INTEGRATION_UNAVAILABLE, INTEGRATION_TIMEOUT, INTEGRATION_ERROR).
-- request_id is added by middleware; x-error-code header mirrors error_code.
-- See `vern_backend/app/errors.py` and `vern_backend/app/utils_logging.py`.
+See inline TODOs in code for specific enhancement ideas.
 
-## DB Path Configuration
+## Privacy Controls & Transparent Logging (2025-08-08)
 
-- Env: `SQLITE_DB_PATH` (recommended). Default in Docker: `/app/data/vern.sqlite`.
-- Resolver `vern_backend/app/db_path.py:get_sqlite_path()` ensures parent dir.
-- Admin DB verify: `GET /admin/db/verify` -> `{ ok: true, path, migrated, version }` or standardized envelope.
+- Privacy policy enforcement and compartmentalized audit logging added in [`vern_backend/app/privacy_policy.py`](vern_backend/app/privacy_policy.py:1) and [`vern_backend/app/utils_logging.py`](vern_backend/app/utils_logging.py:1).
+- Frontend panels now display privacy status and allow users to view privacy audit trails ([`vern_frontend/components/OrchestratorPanel.js`](vern_frontend/components/OrchestratorPanel.js:1), [`vern_frontend/components/WorkflowLogsPanel.js`](vern_frontend/components/WorkflowLogsPanel.js:1)).
+- Inline TODOs added for future privacy audits, consent management, and data export features.
 
-## Frontend API Base
+**Next steps:**  
+- Implement persistent audit log storage and filtering.  
+- Add user consent management and data export endpoints.  
+- Expand frontend privacy controls and audit filtering.
 
-Precedence for resolving API base:
-1) `window.__VERN_API_BASE__`
-2) `NEXT_PUBLIC_API_BASE`
-3) Same-origin (relative)
-- Utility: `vern_frontend/lib/apiBase.js:getApiBase()`
-- Panels using it: `vern_frontend/components/Dashboard.js`, `vern_frontend/components/AgentClusterViz.js`.
+---
 
-## Smoke and Tests
+## MCP Plugin Runtime Model & Registry (2025-08-08)
 
-- Smoke: `scripts/smoke.sh`, `scripts/full_smoke.sh` print/assert envelopes (integration NOT_FOUND, registry delete missing, privacy decision validation, admin DB verify).
-- Backend tests: `vern_backend/tests/test_errors_envelopes.py`, `vern_backend/tests/test_backend_envelopes_additional.py`, `vern_backend/tests/test_admin_db_verify.py`.
-- Run: `pytest -q`
+### Current Runtime Model
 
-## CI/CD & Health Checks
+- **Invocation:** MCP plugins are executed via stdio-based subprocess calls (Python CLI), not via HTTP or network bridge. Each plugin/tool call is routed through the MCP server using CLI arguments and subprocess isolation.
+- **Security:** Plugins run in a sandboxed subprocess with resource limits and import whitelisting. No containerization or network isolation yet.
+- **Registry/Discovery:** Plugins/tools are registered in the MCP registry, requiring admin review and approval before activation. Only approved plugins are enabled for execution.
+- **Audit Logging:** All plugin registration, approval, and execution actions are logged to persistent audit logs (SQLite).
+- **No HTTP Bridge:** There is currently no HTTP proxy/bridge for plugin invocation. All communication is local (stdio/subprocess).
 
-- Automated tests and health checks run on every push and PR via GitHub Actions.
-- Health checks verify memory backend, LLM, and plugin availability.
+### Contributor Notes & Future Plans
 
-## Backend Selection & Resource Awareness
+- **HTTP Proxy/Bridge:** Future phases will add an HTTP bridge for plugin invocation, enabling remote plugins and richer integration patterns.
+- **Extending MCP Tooling:** To extend MCP tooling, add new tool definitions in [`src/mvp/mcp_server.py`](src/mvp/mcp_server.py:1) and register them in the plugin registry. All new plugins must pass admin review and signature verification.
+- **Planned Enhancements:** Signature verification, static analysis, containerization, resource limits, and multi-admin workflows are planned. See inline TODOs in [`src/mvp/plugin_registry.py`](src/mvp/plugin_registry.py:1), [`src/mvp/plugin_tools.py`](src/mvp/plugin_tools.py:1), and [`src/mvp/plugin_sandbox.py`](src/mvp/plugin_sandbox.py:1).
 
-- Optional ASR, TTS, vision, memory backends with sane defaults. Neo4j supported via `VERN_MEMORY_BACKEND=neo4j`.
-
-## Import Hygiene
-
-- Use absolute imports from project root (`src.`). Avoid relative imports.
-
-## Quick Start
-
-- Docker Compose:
-  ```bash
-  docker-compose up --build
-  ```
-  - Frontend: http://localhost:3000
-  - Backend: http://localhost:8000
-  - Neo4j: http://localhost:7474 (neo4j/password)
-
-- Manual:
-  - Backend deps: `pip install -r requirements.txt`
-  - Frontend deps: `cd vern_frontend && npm install`
-  - Import self-test: `PYTHONPATH=. python scripts/check_imports.py`
-  - Run backend: `PYTHONPATH=. uvicorn vern_backend.app.main:app --host 0.0.0.0 --port 8000`
-  - Run frontend: `cd vern_frontend && npm run dev`
-
-## Environment Variables
-
-- Configure via `.env` (see example values in this file).
-
-## Troubleshooting
-
-- Check `.env` and absolute imports if errors occur. Ensure Docker images build match codebase.
-
-## Contributing
-
-- Branch-based workflow; no secrets committed.
-
-## Dashboard Features
-
-- Panels for Config Editor, Workflow Editor, Plugin Marketplace, Onboarding, Help.
-
-## Test Coverage & Docs
-
-- Frontend integration tests for dashboard and onboarding; docs updated each sprint.
-
-## Dockerfiles
-
-- Backend and Frontend Dockerfiles under `vern_backend/` and `vern_frontend/`; Neo4j uses official image.
+See code comments in the above files for technical details and extension guidelines.
