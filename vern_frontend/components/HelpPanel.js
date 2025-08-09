@@ -37,10 +37,36 @@ export default function HelpPanel() {
       <div style={{ marginTop: "2rem", fontSize: "0.95em", color: "#555" }}>
         <b>FAQ:</b>
         <ul>
-          <li><b>Q:</b> Why am I seeing “missing config” errors?<br /><b>A:</b> Check your .env file and fill in all required keys. See the Quickstart Guide for help.</li>
-          <li><b>Q:</b> How do I enable a plugin?<br /><b>A:</b> Only supported plugins are available in the Plugin Marketplace panel.</li>
-          <li><b>Q:</b> How do I get help?<br /><b>A:</b> Use this panel, the onboarding checklist, or ask in the VERN Community.</li>
+         <li><b>Q:</b> Why am I seeing “missing config” errors?<br /><b>A:</b> Check your .env file and fill in all required keys. See the Quickstart Guide for help.</li>
+         <li><b>Q:</b> How do I enable a plugin?<br /><b>A:</b> Only supported plugins are available in the Plugin Marketplace panel.</li>
+         <li><b>Q:</b> How do I get help?<br /><b>A:</b> Use this panel, the onboarding checklist, or ask in the VERN Community.</li>
+         <li>
+           <b>Q:</b> I accidentally installed GPU/CUDA packages (torch with CUDA, nvidia-*). How do I fix this?<br />
+           <b>A:</b>
+           <ol>
+             <li>Run <code>pip list | grep -E 'torch|nvidia'</code> to check for GPU/CUDA packages.</li>
+             <li>Uninstall with:<br />
+               <code>pip uninstall torch torchvision torchaudio nvidia-cublas-cu11 nvidia-cuda-runtime-cu11 nvidia-cudnn-cu11 nvidia-cufft-cu11 nvidia-curand-cu11 nvidia-cusolver-cu11 nvidia-cusparse-cu11 nvidia-nccl-cu11 nvidia-nvtx-cu11</code>
+             </li>
+             <li>Reinstall CPU-only:<br />
+               <code>pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu</code>
+             </li>
+             <li>Validate: In Python, run <code>import torch; print(torch.cuda.is_available())</code> (should print <code>False</code>).</li>
+           </ol>
+           Restart backend and confirm normal operation.
+         </li>
         </ul>
+      <div style={{ marginTop: "2rem", fontSize: "0.95em", color: "#555" }}>
+        <b>Advanced Features & Usage Tips:</b>
+        <ul>
+          <li><b>Workflow Analytics:</b> View execution stats and bottlenecks in the Workflow Editor panel.</li>
+          <li><b>Agent Health Monitoring:</b> Check agent status, error logs, and uptime in the Agent Management panel.</li>
+          <li><b>Plugin Sandboxing:</b> Plugins run in isolated environments with permission controls. Configure in Plugin Registry/Marketplace panels.</li>
+          <li><b>Notification Center:</b> Find alerts for workflow events, agent issues, and plugin updates in the Notification panel.</li>
+          <li><b>User Activity Logs:</b> Audit user actions and troubleshoot in the Workflow Logs panel.</li>
+          <li><b>Accessibility:</b> Use keyboard navigation, ARIA labels, and high-contrast mode (enable in user settings).</li>
+        </ul>
+      </div>
       </div>
     </div>
   );

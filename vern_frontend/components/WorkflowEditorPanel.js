@@ -8,11 +8,17 @@ export default function WorkflowEditorPanel() {
 
   const [workflows, setWorkflows] = useState({});
   const [workflowName, setWorkflowName] = useState("");
-  const [steps, setSteps] = useState([{ agent: "", input: "", persona: "default", context: "" }]);
+  const [steps, setSteps] = useState([{ agent: "", model: "", input: "", persona: "default", context: "" }]);
   const [runResult, setRunResult] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [resourceStatus, setResourceStatus] = useState({ cpu: "normal", ram: "normal" });
+
+  // New: agent/model lists
+  const [agents, setAgents] = useState([]);
+  const [models, setModels] = useState([]);
+  const [agentFetchError, setAgentFetchError] = useState("");
+  const [modelFetchError, setModelFetchError] = useState("");
 
   // Fetch workflows
   useEffect(() => {
@@ -22,9 +28,41 @@ export default function WorkflowEditorPanel() {
       .catch(() => setWorkflows({}));
   }, [success]);
 
+  // Fetch agents
+  useEffect(() => {
+    fetch("/agents/status")
+      .then(res => res.json())
+      .then(data => {
+        setAgents(data.map(a => a.name));
+        // Try to extract models from capabilities/meta
+        const allModels = [];
+        data.forEach(a => {
+          if (Array.isArray(a.capabilities)) {
+            a.capabilities.forEach(m => {
+              if (typeof m === "string" && !allModels.includes(m)) allModels.push(m);
+            });
+          }
+          if (a.meta && Array.isArray(a.meta.models)) {
+            a.meta.models.forEach(m => {
+              if (typeof m === "string" && !allModels.includes(m)) allModels.push(m);
+            });
+          }
+        });
+        setModels(allModels);
+        setAgentFetchError("");
+        setModelFetchError("");
+      })
+      .catch(() => {
+        setAgents([]);
+        setModels([]);
+        setAgentFetchError("Failed to fetch agents.");
+        setModelFetchError("Failed to fetch models.");
+      });
+  }, []);
+
   // Add step
   const addStep = () => {
-    setSteps([...steps, { agent: "", input: "", persona: "default", context: "" }]);
+    setSteps([...steps, { agent: "", model: "", input: "", persona: "default", context: "" }]);
   };
 
   // Update step
@@ -54,9 +92,14 @@ export default function WorkflowEditorPanel() {
         body: JSON.stringify({ name: workflowName, steps })
       });
       const data = await res.json();
+      if (data.error) {
+        setSuccess("");
+        setError(data.error);
+        return;
+      }
       setSuccess(data.result);
       setWorkflowName("");
-      setSteps([{ agent: "", input: "" }]);
+      setSteps([{ agent: "", model: "", input: "" }]);
     } catch (err) {
       setSuccess("");
       setError("Failed to create workflow.");
@@ -75,8 +118,15 @@ export default function WorkflowEditorPanel() {
       body: JSON.stringify({ name })
     })
       .then(res => res.json())
-      .then(data => setRunResult(data.result))
-      .catch(err => setError("Failed to run workflow."));
+      .then(data => {
+        if (data.error) {
+          setError(data.error);
+          setRunResult(null);
+        } else {
+          setRunResult(data.result);
+        }
+      })
+      .catch(() => setError("Failed to run workflow."));
   };
 
   return (
@@ -89,6 +139,8 @@ export default function WorkflowEditorPanel() {
         ? <div style={{ color: "red", marginBottom: "1rem" }}>Error: {error}</div>
         : success && <div style={{ color: "green", marginBottom: "1rem" }}>{success}</div>
       }
+      {agentFetchError && <div style={{ color: "red", marginBottom: "1rem" }}>Agent Error: {agentFetchError}</div>}
+      {modelFetchError && <div style={{ color: "red", marginBottom: "1rem" }}>Model Error: {modelFetchError}</div>}
       <div>
         <h3>Create Workflow</h3>
         <input
@@ -142,13 +194,41 @@ export default function WorkflowEditorPanel() {
                 position: "relative"
               }}
             >
-              <input
-                type="text"
-                placeholder="Agent (e.g. research, finance, health)"
+              {/* Agent dropdown */}
+              <select
                 value={step.agent}
                 onChange={e => updateStep(idx, "agent", e.target.value)}
                 style={{ marginRight: "0.5rem", width: "180px" }}
-              />
+                aria-label="Agent selection"
+              >
+                <option value="">Select Agent</option>
+                {agents.map(agent => (
+                  <option key={agent} value={agent}>{agent}</option>
+                ))}
+              </select>
+              {/* Model dropdown (if available) */}
+              {models.length > 0 ? (
+                <select
+                  value={step.model}
+                  onChange={e => updateStep(idx, "model", e.target.value)}
+                  style={{ marginRight: "0.5rem", width: "180px" }}
+                  aria-label="Model selection"
+                >
+                  <option value="">Select Model</option>
+                  {models.map(model => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Model (optional)"
+                  value={step.model}
+                  onChange={e => updateStep(idx, "model", e.target.value)}
+                  style={{ marginRight: "0.5rem", width: "180px" }}
+                  aria-label="Model input"
+                />
+              )}
               <input
                 type="text"
                 placeholder="Input"
@@ -192,9 +272,12 @@ export default function WorkflowEditorPanel() {
                   →
                 </div>
               )}
-              {/* Live preview (stub/demo) */}
+              {/* Live preview */}
               <div style={{ marginTop: "0.5rem", fontSize: "0.95rem", color: "#888" }}>
-                <em>Preview:</em> {step.agent && step.input ? `Would run agent "${step.agent}" with input "${step.input}", persona "${step.persona}", context "${step.context}"` : "Fill in agent and input"}
+                <em>Preview:</em>{" "}
+                {step.agent && step.input
+                  ? `Would run agent "${step.agent}"${step.model ? ` (model "${step.model}")` : ""} with input "${step.input}", persona "${step.persona}", context "${step.context}"`
+                  : "Fill in agent and input"}
               </div>
             </div>
           ))}
@@ -214,7 +297,7 @@ export default function WorkflowEditorPanel() {
                 <ul>
                   {steps.map((step, idx) => (
                     <li key={idx}>
-                      Agent: {step.agent}, Input: {step.input}
+                      Agent: {step.agent}{step.model ? ` (Model: ${step.model})` : ""}, Input: {step.input}
                     </li>
                   ))}
                 </ul>

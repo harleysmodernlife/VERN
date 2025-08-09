@@ -18,7 +18,7 @@ test("can check onboarding checklist and see completion", async () => {
   // Use getAllByLabelText for ambiguous matches
   const checklistItems = screen.getAllByLabelText(/Read the README/i);
   expect(checklistItems[0]).toBeInTheDocument();
-  act(() => {
+  await act(async () => {
     checklistItems[0].click();
     // Ensure all checkboxes are checked (don't toggle back to unchecked)
     screen.getAllByRole("checkbox").forEach(cb => {

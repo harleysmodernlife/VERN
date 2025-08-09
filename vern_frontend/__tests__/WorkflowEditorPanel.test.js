@@ -63,7 +63,9 @@ describe("WorkflowEditorPanel", () => {
     // Find the parent li and its Run Workflow button
     const workflowLi = workflowItem.closest("li");
     const runBtn = workflowLi.querySelector("button");
-    fireEvent.click(runBtn);
+    await act(async () => {
+      fireEvent.click(runBtn);
+    });
     // Wait for results to appear
     expect(await screen.findByText(/Workflow Run Result/i)).toBeInTheDocument();
     // "Plan a trip" appears in multiple places; check at least one

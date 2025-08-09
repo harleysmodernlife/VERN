@@ -7,11 +7,19 @@ function IntegrationManagerPanel() {
   const [status, setStatus] = useState({});
   const [message, setMessage] = useState("");
 
+  // Ollama model selection
+  const [ollamaModels, setOllamaModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState("");
+
   useEffect(() => {
     fetch("/integrations/")
       .then(res => res.json())
       .then(setIntegrations)
       .catch(() => setMessage("Failed to load integrations."));
+    fetch("/integrations/ollama/models")
+      .then(res => res.json())
+      .then(data => setOllamaModels(data.models || []))
+      .catch(() => setOllamaModels([]));
   }, []);
 
   const handleSelect = provider => {
@@ -22,19 +30,29 @@ function IntegrationManagerPanel() {
       .then(data => {
         setStatus(data);
         setConfig(data.config || {});
+        // If Ollama, set selected model from config
+        if (provider === "ollama" && data.config && data.config.model) {
+          setSelectedModel(data.config.model);
+        }
       })
       .catch(() => setMessage("Failed to load provider status."));
   };
 
   const handleConfigChange = (key, value) => {
     setConfig(cfg => ({ ...cfg, [key]: value }));
+    if (selectedProvider === "ollama" && key === "model") setSelectedModel(value);
+  };
+
+  const handleModelChange = (value) => {
+    setSelectedModel(value);
+    setConfig(cfg => ({ ...cfg, model: value }));
   };
 
   const handleSave = () => {
     fetch(`/integrations/${selectedProvider}/configure`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ config })
+      body: JSON.stringify({ config: selectedProvider === "ollama" ? { ...config, model: selectedModel } : config })
     })
       .then(res => res.json())
       .then(data => {
@@ -67,6 +85,25 @@ function IntegrationManagerPanel() {
       {selectedProvider && (
         <div style={{ border: "1px solid #aaa", padding: "1rem", marginTop: "2rem" }}>
           <h3>Configure {selectedProvider}</h3>
+          {/* Ollama model selection dropdown */}
+          {selectedProvider === "ollama" && (
+            <div style={{ marginBottom: "1rem" }}>
+              <strong>LLM/Ollama Model:</strong>
+              <select
+                value={selectedModel}
+                onChange={e => handleModelChange(e.target.value)}
+                title="Select LLM/Ollama model"
+                style={{ marginLeft: "1rem" }}
+              >
+                <option value="">Select model</option>
+                {ollamaModels.map(model => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {integrations
             .find(i => i.provider === selectedProvider)
             .required_keys.map(key => (

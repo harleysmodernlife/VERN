@@ -11,7 +11,11 @@ export default function ConfigEditorPanel() {
   const [errorLogs, setErrorLogs] = useState([]);
   const [validation, setValidation] = useState({ missing: [], placeholders: [], valid: true });
 
-  // Fetch .env config
+  // Ollama model selection
+  const [ollamaModels, setOllamaModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState("");
+
+  // Fetch .env config and models
   useEffect(() => {
     fetch("/config/env")
       .then(res => res.json())
@@ -25,8 +29,14 @@ export default function ConfigEditorPanel() {
       .then(data => {
         setYamlConfig(data);
         setYamlEdit(data);
+        // If model is set in config, set as selected
+        if (data.default_llm_model) setSelectedModel(data.default_llm_model);
       })
       .catch(() => setError("Failed to load YAML config."));
+    fetch("/integrations/ollama/models")
+      .then(res => res.json())
+      .then(data => setOllamaModels(data.models || []))
+      .catch(() => setOllamaModels([]));
   }, []);
 
   // Fetch error logs
@@ -49,6 +59,13 @@ export default function ConfigEditorPanel() {
   // Handle YAML input change
   const handleYamlChange = (key, value) => {
     setYamlEdit(prev => ({ ...prev, [key]: value }));
+    if (key === "default_llm_model") setSelectedModel(value);
+  };
+
+  // Handle Ollama model selection
+  const handleModelChange = (value) => {
+    setSelectedModel(value);
+    setYamlEdit(prev => ({ ...prev, default_llm_model: value }));
   };
 
   // Save .env config
@@ -73,7 +90,7 @@ export default function ConfigEditorPanel() {
       .finally(() => setLoading(false));
   };
 
-  // Save YAML config
+  // Save YAML config (includes model)
   const saveYaml = () => {
     setLoading(true);
     setError("");
@@ -81,7 +98,7 @@ export default function ConfigEditorPanel() {
     fetch("/config/yaml", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ values: yamlEdit })
+      body: JSON.stringify({ values: { ...yamlEdit, default_llm_model: selectedModel } })
     })
       .then(res => {
         if (!res.ok) throw new Error("Failed to save YAML config.");
@@ -89,7 +106,7 @@ export default function ConfigEditorPanel() {
       })
       .then(() => {
         setSuccess("YAML config saved.");
-        setYamlConfig(yamlEdit);
+        setYamlConfig({ ...yamlEdit, default_llm_model: selectedModel });
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
@@ -133,6 +150,23 @@ export default function ConfigEditorPanel() {
       </div>
       <div style={{ marginTop: "2rem" }}>
         <h3>YAML Config</h3>
+        {/* Ollama Model Selection */}
+        <div style={{ marginBottom: "1rem" }}>
+          <strong>LLM/Ollama Model:</strong>
+          <select
+            value={selectedModel}
+            onChange={e => handleModelChange(e.target.value)}
+            title="Select LLM/Ollama model"
+            style={{ marginLeft: "1rem" }}
+          >
+            <option value="">Select model</option>
+            {ollamaModels.map(model => (
+              <option key={model} value={model}>
+                {model}
+              </option>
+            ))}
+          </select>
+        </div>
         {/* Backend selection UI */}
         <div style={{ marginBottom: "1rem" }}>
           <strong>ASR Backend:</strong>
