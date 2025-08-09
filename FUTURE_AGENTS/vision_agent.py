@@ -18,14 +18,15 @@ AGENT_CONFIG = load_agent_config()
 
 def check_resources(min_ram_gb=2, min_cpu_cores=2, require_gpu=False):
     ram_ok = psutil.virtual_memory().available / (1024 ** 3) >= min_ram_gb
-    cpu_ok = psutil.cpu_count(logical=False) >= min_cpu_cores
+    physical = psutil.cpu_count(logical=False)
+    logical = psutil.cpu_count(logical=True) or 1
+    cpu_cores = physical if isinstance(physical, int) and physical > 0 else logical
+    cpu_ok = cpu_cores >= min_cpu_cores
     gpu_ok = True
     if require_gpu:
-        try:
-            import torch
-            gpu_ok = torch.cuda.is_available()
-        except ImportError:
-            gpu_ok = False
+        # CPU-only environment: GPU/CUDA not supported
+        print("Warning: GPU/CUDA requested but not available on this hardware. Running in CPU-only mode.")
+        gpu_ok = False
     return ram_ok and cpu_ok and gpu_ok
 
 def get_vision_backend(agent_name=None):

@@ -34,11 +34,9 @@ def check_resources(min_ram_gb=2, min_cpu_cores=2, require_gpu=False):
     cpu_ok = cpu_cores >= int(min_cpu_cores)
     gpu_ok = True
     if require_gpu:
-        try:
-            import torch  # type: ignore
-            gpu_ok = bool(torch.cuda.is_available())
-        except Exception:
-            gpu_ok = False
+        # CPU-only environment: GPU/CUDA not supported
+        print("Warning: GPU/CUDA requested but not available on this hardware. Running in CPU-only mode.")
+        gpu_ok = False
     return bool(ram_ok and cpu_ok and gpu_ok)
 
 def get_asr_backend(agent_name=None):

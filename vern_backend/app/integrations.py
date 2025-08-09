@@ -80,3 +80,44 @@ def configure_integration(provider: str, cfg: IntegrationConfig, request: Reques
     required = INTEGRATIONS[provider]["required_keys"]
     INTEGRATIONS[provider]["configured"] = all(k in cfg.config and cfg.config[k] for k in required)
     return {"provider": provider, "configured": INTEGRATIONS[provider]["configured"]}
+
+from fastapi import Response
+import subprocess
+
+@router.get("/integrations/ollama/models")
+def get_ollama_models(request: Request):
+    try:
+        result = subprocess.run(
+            ["ollama", "list"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        models = []
+        for line in result.stdout.strip().splitlines():
+            # Expected format: "model_name  tag  size  modified"
+            parts = line.split()
+            if len(parts) >= 1 and not line.startswith("NAME"):
+                models.append({"name": parts[0]})
+        return {"models": models}
+    except subprocess.CalledProcessError as e:
+        return error_response(
+            "OLLAMA_ERROR",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            f"Ollama command failed: {e}",
+            request
+        )
+    except FileNotFoundError:
+        return error_response(
+            "OLLAMA_NOT_FOUND",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            "Ollama executable not found",
+            request
+        )
+    except Exception as e:
+        return error_response(
+            "UNKNOWN_ERROR",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            f"Unexpected error: {e}",
+            request
+        )

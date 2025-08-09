@@ -5,7 +5,7 @@ import time
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Tuple
 
-# Persistence path centralized via helper (env SQLITE_DB_PATH or default '/app/data/vern.sqlite')
+# Persistence path centralized via helper (env SQLITE_DB_PATH or default './data/vern.sqlite')
 from vern_backend.app.db_path import get_sqlite_path
 # Preserve explicit environment override if provided, else use helper
 DB_PATH = os.environ.get("SQLITE_DB_PATH") or get_sqlite_path()

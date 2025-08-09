@@ -2,13 +2,13 @@ import os
 from pathlib import Path
 from typing import Optional
 
-DEFAULT_DB_PATH = "/app/data/vern.sqlite"
+DEFAULT_DB_PATH = "./data/vern.sqlite"
 
 def get_sqlite_path(env_var: str = "SQLITE_DB_PATH", default: Optional[str] = None) -> str:
     """
     Resolve the canonical SQLite DB path.
     - Reads env var SQLITE_DB_PATH when set.
-    - Defaults to /app/data/vern.sqlite unless an explicit default is provided.
+    - Defaults to ./data/vern.sqlite unless an explicit default is provided.
     - Ensures parent directory exists (best-effort).
     """
     path = os.environ.get(env_var, default or DEFAULT_DB_PATH)

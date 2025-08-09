@@ -8,10 +8,9 @@ References:
 
 This module provides CRUD operations for entities, relationships, and temporal events in the agent memory graph.
 """
-VERN Memory Subsystem: Knowledge Graph API
+# VERN Memory Subsystem: Knowledge Graph API
 
-Supports RAG (retrieval-augmented generation), semantic search, and long-term logs.
-"""
+# Supports RAG (retrieval-augmented generation), semantic search, and long-term logs.
 # TODO: Integrate with external document stores for hybrid RAG.
 # TODO: Add advanced event/entity filtering for semantic search.
 

@@ -22,6 +22,9 @@ setup(
         "pytest-asyncio",
         "neo4j",
         "txtai",
+        # To use PyTorch for CPU-only, install manually:
+        # pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+        # Do NOT install torch or nvidia-* here to avoid unwanted GPU/CUDA libraries.
     ],
     python_requires=">=3.8",
     description="VERN: Multi-Agent Life OS",

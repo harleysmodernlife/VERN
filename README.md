@@ -1,3 +1,76 @@
+> **Note:** For document/image OCR, you must install Tesseract OCR on your system (not just the Python package).  
+> Tesseract OCR must be installed on your operating system (not just in the project folder).  
+> Other required system packages for VERN backend:
+> - sqlite3 (database, usually pre-installed on Linux/Mac)
+## Local Setup Guide
+
+1. Install Python 3.10+ and Node.js 18+ on your system.
+2. Clone the repo and run `python -m venv .venv && source .venv/bin/activate`.
+3. Run `pip install -r vern_backend/requirements.txt`.
+4. Install system packages:  
+   - Ubuntu: `sudo apt-get install tesseract-ocr sqlite3`
+   - Mac: `brew install tesseract sqlite3`
+5. (Optional) Install Neo4j if you want graph features.
+6. In `vern_frontend`, run `npm install` and `npm run build`.
+7. Start backend: `uvicorn vern_backend.app.main:app --reload`
+## Running with Docker Compose
+
+1. Make sure Docker and Docker Compose are installed.
+2. Run `docker compose up --build` from the project root.
+3. This will build and start both backend and frontend containers.
+4. All features (backend API, agents, config panel, workflows) will work the same as local setup.
+5. To update config, use the frontend Config panel or edit files in the project and rebuild.
+6. For Neo4j or other services, add them to `docker-compose.yml` as needed.
+8. Start frontend: `npm start` in `vern_frontend`
+9. Open the app in your browser and use the Config panel to set agent backends and options.
+10. See QUICKSTART.md for troubleshooting tips.
+> - tesseract-ocr (for OCR, already installed)
+> - neo4j (if you use graph features, install Neo4j Community Edition)
+> - Optional: ffmpeg (for audio/video processing in some agents)
+> The Python code calls the system's `tesseract` executable, so it must be available in your PATH.  
+> Example install commands:  
+> - Ubuntu: `sudo apt-get install tesseract-ocr`  
+> - Mac: `brew install tesseract`
+> On Ubuntu: `sudo apt-get install tesseract-ocr`  
+> On Mac: `brew install tesseract`
+> **Note:** To avoid installing GPU/CUDA libraries, do not install torch or nvidia-* by default. For CPU-only PyTorch, use:
+> `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu`
+> See [`vern_backend/requirements.txt`](vern_backend/requirements.txt:1) and [`setup.py`](setup.py:1) for details.
+
+---
+
+## Troubleshooting: Accidental GPU/CUDA Package Installation
+
+If you installed GPU/CUDA packages (e.g., torch with CUDA, nvidia-*), follow these steps to revert to CPU-only:
+
+**1. Detect GPU/CUDA packages:**
+- Run `pip list | grep -E 'torch|nvidia'` to check for GPU/CUDA packages.
+- If `torch` shows a CUDA version (e.g., `torch 2.x.x+cu118`), or if you see `nvidia-*` packages, GPU/CUDA is installed.
+
+**2. Uninstall GPU/CUDA packages:**
+- Run:
+  ```
+  pip uninstall torch torchvision torchaudio nvidia-cublas-cu11 nvidia-cuda-runtime-cu11 nvidia-cudnn-cu11 nvidia-cufft-cu11 nvidia-curand-cu11 nvidia-cusolver-cu11 nvidia-cusparse-cu11 nvidia-nccl-cu11 nvidia-nvtx-cu11
+  ```
+  (You may not have all packages; uninstall any that appear.)
+
+**3. Install CPU-only versions:**
+- Run:
+  ```
+  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+  ```
+
+**4. Validate CPU-only environment:**
+- Run:
+  ```python
+  import torch
+  print(torch.cuda.is_available())  # Should print False
+  ```
+- Confirm no `nvidia-*` packages in `pip list`.
+
+**5. Restart your backend and verify functionality.**
+
+For more help, see the Help panel in the app or ask in the VERN Community.
 # VERN Integration: User Profile, Feedback, and Adaptation Logic
 
 ## Summary of Changes
@@ -60,4 +133,19 @@ See inline TODOs in code for specific enhancement ideas.
 - **Extending MCP Tooling:** To extend MCP tooling, add new tool definitions in [`src/mvp/mcp_server.py`](src/mvp/mcp_server.py:1) and register them in the plugin registry. All new plugins must pass admin review and signature verification.
 - **Planned Enhancements:** Signature verification, static analysis, containerization, resource limits, and multi-admin workflows are planned. See inline TODOs in [`src/mvp/plugin_registry.py`](src/mvp/plugin_registry.py:1), [`src/mvp/plugin_tools.py`](src/mvp/plugin_tools.py:1), and [`src/mvp/plugin_sandbox.py`](src/mvp/plugin_sandbox.py:1).
 
+## Advanced Features (2025-08-09)
+
+- **Workflow Analytics:** Visualize workflow execution stats, bottlenecks, and success rates in the Workflow Editor.
+- **Agent Health Monitoring:** View real-time agent status, error logs, and uptime metrics in the Agent Management Panel.
+- **Plugin Sandboxing:** Plugins run in isolated environments with permission controls and resource limits. See Plugin Registry and Marketplace panels.
+- **Notification Center:** Centralized alerts for workflow events, agent issues, and plugin updates.
+- **User Activity Logs:** Track user actions for auditing and troubleshooting in the Workflow Logs Panel.
+- **Accessibility Enhancements:** Keyboard navigation, ARIA labels, and high-contrast mode available across all panels.
+
+### Usage Tips
+
+- Access analytics and health metrics from the relevant panels.
+- Configure plugin permissions and sandboxing in the Plugin Registry.
+- Use the Notification Center for system-wide alerts.
+- Enable high-contrast mode and keyboard shortcuts in user settings.
 See code comments in the above files for technical details and extension guidelines.

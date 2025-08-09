@@ -14,14 +14,14 @@ Author: VERN Team
 import sys
 import os
 
-from src.mvp import finance_resource
+# Removed import of finance_resource (moved to FUTURE_AGENTS)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from src.mcp.server.fastmcp import FastMCP
 
 # Import agent clusters for tool integration
 from src.mvp.health_wellness import health_respond
-from src.mvp.finance_resource import finance_respond
+# Removed import of finance_respond (finance_resource moved to FUTURE_AGENTS)
 
 import sqlite3
 import json
@@ -127,7 +127,7 @@ def cluster_status() -> dict:
         "dev_team": "online",
         "admin": "online",
         "research": "online",
-        "finance_resource": "online",
+        # "finance_resource": "online",  # Removed, agent moved to FUTURE_AGENTS
         "health_wellness": "online",
         "learning_education": "online",
         "social_relationship": "online",
@@ -202,16 +202,7 @@ def get_user_profile(user_id: int) -> dict:
         return {"error": str(e)}
 
 @mcp.tool()
-def finance_balance(user_id: int = None) -> str:
-    """
-    Check finance/resource balance via the FinanceResource agent.
-    Args:
-        user_id: Optional user ID for logging.
-    Returns:
-        Balance or result from the FinanceResource agent.
-    """
-    fr = finance_resource()
-    return fr.handle_request("balance", user_id=user_id)
+# Removed finance_balance tool (finance_resource agent moved to FUTURE_AGENTS)
 
 # --- MCP Plugin Tools ---
 

@@ -9,7 +9,7 @@ try:
     from vern_backend.app.db_path import get_sqlite_path
     DB_PATH = get_sqlite_path()
 except Exception:
-    DB_PATH = os.environ.get("SQLITE_DB_PATH", "/app/data/vern.sqlite")
+    DB_PATH = os.environ.get("SQLITE_DB_PATH", "./data/vern.sqlite")
 
 router = APIRouter(prefix="/users", tags=["users"])
 

@@ -41,3 +41,41 @@ def test_vector_memory_logging():
     assert any("test" in str(log) for log in logs)
 
 # TODO: Add integration tests for agent workflows using RAG and semantic memory.
+def test_agent_workflow_rag_integration():
+    # Simulate agent storing workflow steps and retrieving context
+    mem = MemoryGraph()
+    agent_id = "agent_1"
+    mem.add_entity(agent_id, {"role": "research", "desc": "Agent for RAG workflows"})
+    mem.add_event(agent_id, "step", properties={"desc": "Initialized agent"})
+    mem.add_event(agent_id, "step", properties={"desc": "Retrieved documents"})
+    mem.add_entity("docA", {"text": "Agentic RAG enables advanced retrieval"})
+    mem.add_entity("docB", {"text": "Semantic memory supports agent workflows"})
+    results = mem.rag_retrieve("agent", top_k=2)
+    assert agent_id in results["entities"]
+    assert any("agent" in str(evt) for evt in results["events"])
+
+def test_agent_semantic_memory_vector_integration():
+    # Simulate agent storing and retrieving workflow steps using vector memory
+    vec_mem = NoOpVectorMemory()
+    docs = [
+        "Agent step: ingest data",
+        "Agent step: semantic search",
+        "Agent step: generate response"
+    ]
+    vec_mem.add_documents(docs)
+    retrieved = vec_mem.rag_retrieve("semantic", top_k=2)
+    assert isinstance(retrieved, list)
+    assert any("semantic" in doc for doc in retrieved)
+
+def test_agent_rag_memory_integration():
+    # Simulate agent using RAG memory for workflow context retrieval
+    rag_mem = NoOpRAGMemory()
+    docs = [
+        "Agent workflow: initialize",
+        "Agent workflow: retrieve context",
+        "Agent workflow: finalize"
+    ]
+    rag_mem.add_documents(docs)
+    results = rag_mem.query("retrieve", top_k=2)
+    assert isinstance(results, list)
+    assert any("retrieve" in r["content"] for r in results)

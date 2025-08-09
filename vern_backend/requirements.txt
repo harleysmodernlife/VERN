@@ -10,3 +10,9 @@ pytest
 pytest-asyncio
 neo4j
 txtai
+pytesseract
+Pillow
+# PyTorch is NOT installed here to prevent GPU/CUDA wheels.
+# Install CPU-only PyTorch in Dockerfile or manually:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# Do NOT add torch or any nvidia-* packages here.
